@@ -21,10 +21,7 @@ export function useAlbumArt(artist: string, title: string): UseAlbumArtResult {
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        console.log(`🪝 useAlbumArt called with artist: "${artist}", title: "${title}"`);
-        
         if (!artist || !title) {
-            console.log(`⚠️ Missing artist or title, skipping album art fetch`);
             setAlbumArt(null);
             setIsLoading(false);
             setError(null);
@@ -34,12 +31,10 @@ export function useAlbumArt(artist: string, title: string): UseAlbumArtResult {
         let isCancelled = false;
         setIsLoading(true);
         setError(null);
-        console.log(`🔄 Starting album art fetch...`);
 
         fetchAlbumArtMultiSource(artist, title)
             .then((result: AlbumArtResult) => {
                 if (!isCancelled) {
-                    console.log(`✅ Album art fetch completed:`, result);
                     setAlbumArt(result.imageUrl);
                     setError(result.error || null);
                     setIsLoading(false);
@@ -47,7 +42,6 @@ export function useAlbumArt(artist: string, title: string): UseAlbumArtResult {
             })
             .catch((err: Error) => {
                 if (!isCancelled) {
-                    console.error(`❌ Album art fetch failed:`, err);
                     setError(err.message || 'Failed to fetch album art');
                     setAlbumArt(null);
                     setIsLoading(false);
@@ -55,7 +49,6 @@ export function useAlbumArt(artist: string, title: string): UseAlbumArtResult {
             });
 
         return () => {
-            console.log(`🧹 Cleaning up album art fetch for "${title}" by "${artist}"`);
             isCancelled = true;
         };
     }, [artist, title]);

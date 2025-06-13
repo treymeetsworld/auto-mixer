@@ -2,7 +2,6 @@ import { useRef, useState } from "react";
 import Waveform, { type WaveformHandle } from "./components/Waveform";
 import PlayerControls from "./components/PlayerControls";
 import AlbumArt from "./components/AlbumArt";
-import { testMusicBrainzAPI, fetchAlbumArtFromItunes, fetchAlbumArtMultiSource, testItunesInBrowser } from "./utils/albumArtUtils";
 // import QueuePanel from "./components/QueuePanel";
 // import FileBrowser from "./components/FileBrowser";
 import "./App.css";
@@ -67,78 +66,41 @@ export default function App() {
         setCurrentTrack(queue[prevIndex]);
     };
 
-    const testAlbumArt = async () => {
-        console.log("🧪 Testing album art APIs...");
-        
-        // Test iTunes in browser first
-        await testItunesInBrowser();
-        
-        // Test MusicBrainz access
-        const mbTest = await testMusicBrainzAPI();
-        console.log("MusicBrainz accessible:", mbTest);
-        
-        // Test iTunes with current track
-        if (currentTrack) {
-            console.log(`Testing iTunes API with "${currentTrack.title}" by "${currentTrack.artist}"`);
-            const itunesResult = await fetchAlbumArtFromItunes(currentTrack.artist, currentTrack.title);
-            console.log("iTunes result:", itunesResult);
-            
-            console.log(`Testing multi-source with "${currentTrack.title}" by "${currentTrack.artist}"`);
-            const multiResult = await fetchAlbumArtMultiSource(currentTrack.artist, currentTrack.title);
-            console.log("Multi-source result:", multiResult);
-        }
-    };
-
     return (
         <div className="app">
             {/* Top Section - Music Player */}
             <div className="player-section">
-                <div className="player-header-with-art">
-                    <div>
-                        <h1>Auto-Mix DJ</h1>
-                        {currentTrack && (
-                            <div className="current-track-info">
-                                <h2>{currentTrack.title}</h2>
-                                <p>{currentTrack.artist}</p>
-                            </div>
-                        )}
-                        <button 
-                            onClick={testAlbumArt}
-                            style={{
-                                marginTop: '1rem',
-                                padding: '0.5rem 1rem',
-                                backgroundColor: 'rgba(255,255,255,0.2)',
-                                border: '1px solid rgba(255,255,255,0.3)',
-                                color: 'white',
-                                borderRadius: '4px',
-                                cursor: 'pointer'
-                            }}
-                        >
-                            🧪 Test Album Art APIs
-                        </button>
-                    </div>
-                    {currentTrack && (
+                <div className="main-header">
+                    <h1>Auto-Mix DJ</h1>
+                </div>
+                
+                {currentTrack && (
+                    <div className="track-display-container">
                         <AlbumArt 
                             artist={currentTrack.artist}
                             title={currentTrack.title}
                             size="large"
                         />
-                    )}
-                </div>
+                        <div className="track-details">
+                            <h2>{currentTrack.title}</h2>
+                            <p>{currentTrack.artist}</p>
+                        </div>
+                    </div>
+                )}
                 
                 <div className="waveform-container">
                     <Waveform
                         ref={waveformRef}
                         url={currentTrack?.url || ""}
-                        onSeek={(t) => console.log('Seek:', t)}
+                        onSeek={() => {}}
                     />
                 </div>
 
                 <PlayerControls
                     waveformRef={waveformRef}
-                    onSeek={(t) => console.log('Seek:', t)}
-                    onTimeUpdate={(t) => console.log('Time update:', t)}
-                    onPlayingChange={(p) => console.log('Playing:', p)}
+                    onSeek={() => {}}
+                    onTimeUpdate={() => {}}
+                    onPlayingChange={() => {}}
                     onNext={handleNextTrack}
                     onPrevious={handlePreviousTrack}
                     currentTrackId={currentTrack?.id}
