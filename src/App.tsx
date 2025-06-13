@@ -1,6 +1,8 @@
 import { useRef, useState } from "react";
 import Waveform, { type WaveformHandle } from "./components/Waveform";
 import PlayerControls from "./components/PlayerControls";
+import AlbumArt from "./components/AlbumArt";
+import { testMusicBrainzAPI, fetchAlbumArtFromItunes, fetchAlbumArtMultiSource, testItunesInBrowser } from "./utils/albumArtUtils";
 // import QueuePanel from "./components/QueuePanel";
 // import FileBrowser from "./components/FileBrowser";
 import "./App.css";
@@ -65,17 +67,62 @@ export default function App() {
         setCurrentTrack(queue[prevIndex]);
     };
 
+    const testAlbumArt = async () => {
+        console.log("🧪 Testing album art APIs...");
+        
+        // Test iTunes in browser first
+        await testItunesInBrowser();
+        
+        // Test MusicBrainz access
+        const mbTest = await testMusicBrainzAPI();
+        console.log("MusicBrainz accessible:", mbTest);
+        
+        // Test iTunes with current track
+        if (currentTrack) {
+            console.log(`Testing iTunes API with "${currentTrack.title}" by "${currentTrack.artist}"`);
+            const itunesResult = await fetchAlbumArtFromItunes(currentTrack.artist, currentTrack.title);
+            console.log("iTunes result:", itunesResult);
+            
+            console.log(`Testing multi-source with "${currentTrack.title}" by "${currentTrack.artist}"`);
+            const multiResult = await fetchAlbumArtMultiSource(currentTrack.artist, currentTrack.title);
+            console.log("Multi-source result:", multiResult);
+        }
+    };
+
     return (
         <div className="app">
             {/* Top Section - Music Player */}
             <div className="player-section">
-                <div className="player-header">
-                    <h1>Auto-Mix DJ</h1>
+                <div className="player-header-with-art">
+                    <div>
+                        <h1>Auto-Mix DJ</h1>
+                        {currentTrack && (
+                            <div className="current-track-info">
+                                <h2>{currentTrack.title}</h2>
+                                <p>{currentTrack.artist}</p>
+                            </div>
+                        )}
+                        <button 
+                            onClick={testAlbumArt}
+                            style={{
+                                marginTop: '1rem',
+                                padding: '0.5rem 1rem',
+                                backgroundColor: 'rgba(255,255,255,0.2)',
+                                border: '1px solid rgba(255,255,255,0.3)',
+                                color: 'white',
+                                borderRadius: '4px',
+                                cursor: 'pointer'
+                            }}
+                        >
+                            🧪 Test Album Art APIs
+                        </button>
+                    </div>
                     {currentTrack && (
-                        <div className="current-track-info">
-                            <h2>{currentTrack.title}</h2>
-                            <p>{currentTrack.artist}</p>
-                        </div>
+                        <AlbumArt 
+                            artist={currentTrack.artist}
+                            title={currentTrack.title}
+                            size="large"
+                        />
                     )}
                 </div>
                 
@@ -111,12 +158,18 @@ export default function App() {
                         {queue.map((track, index) => (
                             <div 
                                 key={track.id}
-                                className={`track-item ${currentTrack?.id === track.id ? 'current' : ''}`}
+                                className={`track-item track-item-with-art ${currentTrack?.id === track.id ? 'current' : ''}`}
                                 onClick={() => handleTrackSelect(track)}
                             >
                                 <div className="track-number">
                                     {index + 1}
                                 </div>
+                                
+                                <AlbumArt 
+                                    artist={track.artist}
+                                    title={track.title}
+                                    size="small"
+                                />
                                 
                                 <div className="track-info">
                                     <h4 className="track-title">{track.title}</h4>
@@ -155,9 +208,15 @@ export default function App() {
                         {sampleTracks.map((track) => (
                             <div 
                                 key={track.id}
-                                className="track-item"
+                                className="track-item track-item-with-art"
                                 onClick={() => handleTrackSelect(track)}
                             >
+                                <AlbumArt 
+                                    artist={track.artist}
+                                    title={track.title}
+                                    size="small"
+                                />
+                                
                                 <div className="track-info">
                                     <h4 className="track-title">{track.title}</h4>
                                     <p className="track-artist">{track.artist}</p>
