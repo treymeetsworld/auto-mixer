@@ -6,27 +6,65 @@
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  overflow: hidden; /* Prevent overall page scrolling */
+}
+
+/* App layout proportions: 40% player, 60% panels */
+.player-section {
+  flex: 0 0 40%;
+  min-height: 0;
+}
+
+.panels-section {
+  flex: 0 0 60%;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden; /* Prevent overall overflow */
 }
 
 /* Responsive Design */
-@media (max-width: 768px) {
-  .player-header {
-    flex-direction: column;
-    gap: 1rem;
-    text-align: center;
+/* Large tablets and small desktops */
+@media (max-width: 1024px) {
+  .app {
+    font-size: 14px;
   }
-  
-  .current-track-info {
-    text-align: center;
+}
+
+/* Tablets */
+@media (max-width: 768px) {
+  .player-section {
+    flex: 0 0 45%;
   }
   
   .panels-section {
+    flex: 0 0 55%;
     grid-template-columns: 1fr;
     grid-template-rows: 1fr 1fr;
+    gap: 1px;
   }
   
   .queue-panel {
     border-right: none;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+}
+
+/* Mobile phones */
+@media (max-width: 480px) {
+  .app {
+    font-size: 12px;
+  }
+  
+  .player-section {
+    flex: 0 0 50%;
+  }
+  
+  .panels-section {
+    flex: 0 0 50%;
+    grid-template-columns: 1fr;
+    grid-template-rows: 0.6fr 1fr; /* Make file browser larger on mobile */
   }
 }

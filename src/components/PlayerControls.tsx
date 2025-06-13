@@ -25,12 +25,20 @@ export default function PlayerControls({
     const [currentTime, setCurrentTime] = useState(0);
     const [volume, setVolume] = useState(1); // Volume from 0 to 1
     const [isMuted, setIsMuted] = useState(false);
-    const [previousVolume, setPreviousVolume] = useState(1);    // Reset play state when track changes
+    const [previousVolume, setPreviousVolume] = useState(1);    // Reset play state and volume when track changes
     useEffect(() => {
         setIsPlaying(false);
         setCurrentTime(0);
+        setVolume(1); // Reset volume to 100%
+        setIsMuted(false); // Unmute
+        setPreviousVolume(1); // Reset previous volume
         onPlayingChange(false);
-    }, [currentTrackId, onPlayingChange]);
+        
+        // Apply volume reset to waveform if available
+        if (waveformRef.current) {
+            waveformRef.current.setVolume(1);
+        }
+    }, [currentTrackId, onPlayingChange, waveformRef]);
 
     // Initialize volume when waveform is ready
     useEffect(() => {
@@ -96,69 +104,71 @@ export default function PlayerControls({
         return "fa-volume-up";
     };
 
-    const duration = waveformRef.current?.getDuration() || 0;
+    const duration = waveformRef.current?.getDuration() || 0;    return (
+        <div className="player-controls">
+            {/* Controls and Volume in one container */}
+            <div className="controls-volume-container">
+                <div className="controls-row">
+                    <button 
+                        className="control-btn secondary"
+                        onClick={onPrevious}
+                        disabled={!onPrevious}
+                        title="Previous track"
+                    >
+                        <i className="fas fa-step-backward"></i>
+                    </button>
+                    
+                    <button 
+                        className="control-btn primary play-btn"
+                        onClick={togglePlay}
+                        title={isPlaying ? "Pause" : "Play"}
+                    >
+                        <i className={`fas ${isPlaying ? "fa-pause" : "fa-play"}`}></i>
+                    </button>
+                      <button 
+                        className="control-btn secondary"
+                        onClick={onNext}
+                        disabled={!onNext}
+                        title="Next track"
+                    >
+                        <i className="fas fa-step-forward"></i>
+                    </button>
+                </div>
 
-    return (
-        <div className="player-controls">            <div className="controls-row">
-                <button 
-                    className="control-btn secondary"
-                    onClick={onPrevious}
-                    disabled={!onPrevious}
-                    title="Previous track"
-                >
-                    <i className="fas fa-step-backward"></i>
-                </button>
-                
-                <button 
-                    className="control-btn primary play-btn"
-                    onClick={togglePlay}
-                    title={isPlaying ? "Pause" : "Play"}
-                >
-                    <i className={`fas ${isPlaying ? "fa-pause" : "fa-play"}`}></i>
-                </button>
-                  <button 
-                    className="control-btn secondary"
-                    onClick={onNext}
-                    disabled={!onNext}
-                    title="Next track"
-                >
-                    <i className="fas fa-step-forward"></i>
-                </button>
+                <div className="volume-container">
+                    <button 
+                        className="volume-btn"
+                        onClick={toggleMute}
+                        title={isMuted ? "Unmute" : "Mute"}
+                    >
+                        <i className={`fas ${getVolumeIcon()}`}></i>
+                    </button>
+                    
+                    <input
+                        type="range"
+                        min={0}
+                        max={1}
+                        step={0.01}
+                        value={volume}
+                        onChange={handleVolumeChange}
+                        className="volume-slider"
+                    />
+                </div>
             </div>
 
-            <div className="volume-container">
-                <button 
-                    className="volume-btn"
-                    onClick={toggleMute}
-                    title={isMuted ? "Unmute" : "Mute"}
-                >
-                    <i className={`fas ${getVolumeIcon()}`}></i>
-                </button>
-                
-                <input
-                    type="range"
-                    min={0}
-                    max={1}
-                    step={0.01}
-                    value={volume}
-                    onChange={handleVolumeChange}
-                    className="volume-slider"
-                />
-            </div>
-
+            {/* Progress as sibling container */}
             <div className="progress-container">
                 <span className="time-display">
                     {formatTime(currentTime)}
                 </span>
-                
-                <input
+                  <input
                     type="range"
                     min={0}
                     max={duration}
                     step={0.01}
                     value={currentTime}
                     onChange={handleSeekInput}
-                    className="progress-slider"
+                    className="seek-slider"
                 />
                 
                 <span className="time-display">

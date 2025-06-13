@@ -60,3 +60,62 @@
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
+
+/* Responsive Design for Album Art */
+@media (max-width: 768px) {
+  .album-art-small {
+    width: 32px;
+    height: 32px;
+  }
+
+  .album-art-medium {
+    width: 64px;
+    height: 64px;
+  }
+
+  .album-art-large {
+    width: 96px;
+    height: 96px;
+  }
+  
+  .album-art-small .placeholder-icon {
+    font-size: 0.9rem;
+  }
+  
+  .album-art-large .placeholder-icon {
+    font-size: 2.5rem;
+  }
+  
+  .loading-spinner {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .album-art-small {
+    width: 28px;
+    height: 28px;
+  }
+
+  .album-art-medium {
+    width: 56px;
+    height: 56px;
+  }
+
+  .album-art-large {
+    width: 80px;
+    height: 80px;
+  }
+  
+  .album-art-small .placeholder-icon {
+    font-size: 0.8rem;
+  }
+  
+  .album-art-large .placeholder-icon {
+    font-size: 2rem;
+  }
+  
+  .loading-spinner {
+    font-size: 0.8rem;
+  }
+}

@@ -3,8 +3,6 @@ import Waveform, { type WaveformHandle } from "./components/Waveform";
 import PlayerControls from "./components/PlayerControls";
 import AlbumArt from "./components/AlbumArt";
 import LocalFileSystemBrowser from "./components/LocalFileSystemBrowser";
-// import QueuePanel from "./components/QueuePanel";
-// import FileBrowser from "./components/FileBrowser";
 import "./App.css";
 
 interface Track {
@@ -100,37 +98,46 @@ export default function App() {
                     <h1>Auto-Mix DJ</h1>
                 </div>
                 
-                {currentTrack && (
-                    <div className="track-display-container">
-                        <AlbumArt 
-                            artist={currentTrack.artist}
-                            title={currentTrack.title}
-                            size="large"
-                        />
-                        <div className="track-details">
-                            <h2>{currentTrack.title}</h2>
-                            <p>{currentTrack.artist}</p>
+                {/* New layout: Album art next to waveform */}
+                <div className="player-content">
+                    <div className="album-waveform-container">
+                        {currentTrack && (
+                            <AlbumArt 
+                                artist={currentTrack.artist}
+                                title={currentTrack.title}
+                                size="large"
+                            />
+                        )}
+                        
+                        <div className="waveform-track-info">
+                            {currentTrack && (
+                                <div className="track-details">
+                                    <h2>{currentTrack.title}</h2>
+                                    <p>{currentTrack.artist}</p>
+                                </div>
+                            )}
+                            
+                            <div className="waveform-container">
+                                <Waveform
+                                    ref={waveformRef}
+                                    url={currentTrack?.url || ""}
+                                    onSeek={() => {}}
+                                />
+                            </div>
                         </div>
                     </div>
-                )}
-                
-                <div className="waveform-container">
-                    <Waveform
-                        ref={waveformRef}
-                        url={currentTrack?.url || ""}
+
+                    {/* Player controls on one line */}
+                    <PlayerControls
+                        waveformRef={waveformRef}
                         onSeek={() => {}}
+                        onTimeUpdate={() => {}}
+                        onPlayingChange={() => {}}
+                        onNext={handleNextTrack}
+                        onPrevious={handlePreviousTrack}
+                        currentTrackId={currentTrack?.id}
                     />
                 </div>
-
-                <PlayerControls
-                    waveformRef={waveformRef}
-                    onSeek={() => {}}
-                    onTimeUpdate={() => {}}
-                    onPlayingChange={() => {}}
-                    onNext={handleNextTrack}
-                    onPrevious={handlePreviousTrack}
-                    currentTrackId={currentTrack?.id}
-                />
             </div>
 
             {/* Bottom Section - Side by Side Panels */}

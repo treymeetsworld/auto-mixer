@@ -1,54 +1,24 @@
 /* Player section styles */
 .player-section {
-  flex: 0 0 auto;
-  padding: 1.5rem;
+  padding: 1rem;
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(20px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.player-header {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
-}
-
-.player-header h1 {
-  margin: 0;
-  font-size: 2.5rem;
-  font-weight: 700;
-  background: linear-gradient(45deg, #fff, #e0e0e0);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.current-track-info {
-  text-align: right;
-}
-
-.current-track-info h2 {
-  margin: 0;
-  font-size: 1.5rem;
-  font-weight: 600;
-}
-
-.current-track-info p {
-  margin: 0.25rem 0 0 0;
-  opacity: 0.8;
-  font-size: 1rem;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 /* Main Header */
 .main-header {
   text-align: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
+  flex-shrink: 0;
 }
 
 .main-header h1 {
   margin: 0;
-  font-size: 2rem;
+  font-size: 1.75rem;
   font-weight: 700;
   background: linear-gradient(45deg, #fff, #e0e0e0);
   -webkit-background-clip: text;
@@ -56,41 +26,204 @@
   background-clip: text;
 }
 
-/* Track Display Container */
-.track-display-container {
+/* Player Content Container */
+.player-content {
+  flex: 1;
   display: flex;
-  align-items: center;
-  gap: 1.5rem;
-  padding: 1rem;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  margin-bottom: 1.5rem;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-height: 0;
 }
 
-.track-details {
+/* Album Art and Waveform Container */
+.album-waveform-container {
+  display: flex;
+  align-items: stretch; /* Make album art and waveform section same height */
+  gap: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 0.5rem;
+  min-height: 120px; /* Ensure consistent height */
+}
+
+.waveform-track-info {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between; /* Distribute track details and waveform evenly */
+  gap: 0.5rem;
+  min-width: 0; /* Allow flex item to shrink */
+}
+
+/* Track Details */
+.track-details {
+  flex-shrink: 0;
+  padding-bottom: 0.25rem;
 }
 
 .track-details h2 {
   margin: 0 0 0.25rem 0;
-  font-size: 1.4rem;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: white;
+  line-height: 1.2;
+}
+
+.track-details p {
+  margin: 0;
+  font-size: 0.9rem;
+  opacity: 0.8;
+  color: white;
+  line-height: 1.2;
+}
+
+.waveform-container {
+  flex: 1;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 6px;
+  padding: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center; /* Center waveform vertically */
+  min-height: 70px; /* Ensure consistent waveform height */
+  overflow: hidden; /* Prevent waveform from overflowing */
+  max-width: calc(100% - 140px); /* Account for album art width and gap */
+}
+
+/* Ensure album art is properly aligned within the container */
+.album-waveform-container .album-art {
+  align-self: flex-start; /* Align to top of container */
+  flex-shrink: 0; /* Prevent album art from shrinking */
+}
+
+/* Waveform div inside container should take full width but not overflow */
+.waveform-container > div {
+  width: 100%;
+  max-width: 100%;
+  min-height: 60px;
+  overflow: hidden;
+}
+
+/* Ensure waveform canvas doesn't overflow */
+.waveform-container canvas {
+  max-width: 100% !important;
+  height: 60px !important;
+}
+
+.track-details {
+  margin-bottom: 0.5rem;
+}
+
+.track-details h2 {
+  margin: 0 0 0.25rem 0;
+  font-size: 1.2rem;
   font-weight: 600;
   color: white;
 }
 
 .track-details p {
   margin: 0;
-  font-size: 1rem;
+  font-size: 0.9rem;
   opacity: 0.8;
   color: white;
 }
 
 .waveform-container {
-  margin: 1rem 0;
-  background: rgba(0, 0, 0, 0.2);
+  flex: 1;
+  background: rgba(0, 0, 0, 0.3);
   border-radius: 8px;
-  padding: 0.75rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  min-height: 60px;
+}
+
+/* Responsive Design for Player */
+@media (max-width: 1024px) {
+  .player-section {
+    padding: 1rem;
+  }
+  
+  .main-header h1 {
+    font-size: 1.75rem;
+  }
+  
+  .album-waveform-container {
+    gap: 1rem;
+  }
+  
+  .track-details h2 {
+    font-size: 1.2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .player-section {
+    padding: 0.75rem;
+  }
+  
+  .main-header h1 {
+    font-size: 1.5rem;
+  }
+  
+  .album-waveform-container {
+    gap: 0.75rem;
+    padding: 0.75rem;
+  }
+  
+  .track-details h2 {
+    font-size: 1.1rem;
+  }
+  
+  .track-details p {
+    font-size: 0.85rem;
+  }
+  
+  .waveform-container {
+    padding: 0.5rem;
+    min-height: 70px;
+  }
+}
+
+@media (max-width: 480px) {
+  .player-section {
+    padding: 0.5rem;
+  }
+  
+  .main-header {
+    margin-bottom: 1rem;
+  }
+  
+  .main-header h1 {
+    font-size: 1.25rem;
+  }
+  
+  .album-waveform-container {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem;
+  }
+  
+  .waveform-track-info {
+    width: 100%;
+  }
+  
+  .track-details {
+    text-align: center;
+  }
+  
+  .track-details h2 {
+    font-size: 1rem;
+  }
+  
+  .track-details p {
+    font-size: 0.8rem;
+  }
+  
+  .waveform-container {
+    padding: 0.375rem;
+    min-height: 60px;
+  }
 }

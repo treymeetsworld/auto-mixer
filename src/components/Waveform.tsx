@@ -31,14 +31,14 @@ const Waveform = forwardRef<WaveformHandle, Props>(({ url, onSeek }, ref) => {
         getCurrentTime: () => wsRef.current?.getCurrentTime() || 0,
         getDuration:    () => wsRef.current?.getDuration()    || 0,
         setVolume: (volume: number) => wsRef.current?.setVolume(volume),
-    }), []);
-
-    useEffect(() => {        const ws = WaveSurfer.create({
+    }), []);    useEffect(() => {        const ws = WaveSurfer.create({
             container: containerRef.current!,
             waveColor: "#aaa",
             progressColor: "#4f46e5",
             cursorColor: "#000",
-            height: 100,
+            height: 60,
+            normalize: true,
+            fillParent: true,
         });
         ws.load(url);
         ws.on("click" as any, (progress: number) => {
@@ -52,7 +52,7 @@ const Waveform = forwardRef<WaveformHandle, Props>(({ url, onSeek }, ref) => {
         };
     }, [url, onSeek]);
 
-    return <div ref={containerRef} />;
+    return <div ref={containerRef} style={{ width: '100%', height: '60px' }} />;
 });
 
 export default Waveform;

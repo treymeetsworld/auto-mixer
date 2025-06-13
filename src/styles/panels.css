@@ -1,12 +1,4 @@
-/* Panel layout and styles */
-.panels-section {
-  flex: 1;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1px;
-  background: rgba(255, 255, 255, 0.1);
-}
-
+/* Panel styling for queue and file browser */
 .queue-panel,
 .file-browser-panel {
   background: rgba(255, 255, 255, 0.05);
@@ -14,6 +6,8 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  min-height: 0; /* Allow panels to shrink and trigger scrolling */
+  max-height: 100%; /* Respect parent container height */
 }
 
 .queue-panel {
@@ -28,6 +22,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-shrink: 0;
 }
 
 .panel-header h3 {
@@ -80,25 +75,37 @@
 .panel-content {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 0.75rem;
+  max-height: calc(100vh - 200px); /* Ensure scrolling when content exceeds viewport */
+  min-height: 300px;
+  scroll-behavior: smooth;
 }
 
 /* Scrollbar Styling */
 .panel-content::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
 }
 
 .panel-content::-webkit-scrollbar-track {
   background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
 }
 
 .panel-content::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .panel-content::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.5);
+}
+
+/* Firefox scrollbar styling */
+.panel-content {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.05);
 }
 
 /* File Browser Navigation */
@@ -111,6 +118,10 @@
   background: rgba(0, 0, 0, 0.2);
   border-radius: 6px;
   border: 1px solid rgba(255, 255, 255, 0.1);
+  flex-shrink: 0; /* Prevent navigation from shrinking */
+  position: sticky;
+  top: 0;
+  z-index: 1;
 }
 
 .nav-btn {
@@ -186,6 +197,8 @@
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  flex: 1;
+  min-height: 0; /* Allow shrinking */
 }
 
 .file-item {
