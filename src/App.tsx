@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import Waveform, { type WaveformHandle } from "./components/Waveform";
 import PlayerControls from "./components/PlayerControls";
 import AlbumArt from "./components/AlbumArt";
+import LocalFileSystemBrowser from "./components/LocalFileSystemBrowser";
 // import QueuePanel from "./components/QueuePanel";
 // import FileBrowser from "./components/FileBrowser";
 import "./App.css";
@@ -12,6 +13,7 @@ interface Track {
     artist: string;
     duration: number;
     url: string;
+    file?: File; // For local files
 }
 
 const sampleTracks: Track[] = [
@@ -38,16 +40,40 @@ export default function App() {
 
     const waveformRef = useRef<WaveformHandle>(null);
 
-    const handleTrackSelect = (track: Track) => {
-        setCurrentTrack(track);
-        const index = queue.findIndex(t => t.id === track.id);
+    const handleTrackSelect = (track: Track | any) => {
+        // Convert LocalFile to Track if needed
+        const convertedTrack: Track = {
+            id: track.id,
+            title: track.title || 'Unknown Title',
+            artist: track.artist || 'Unknown Artist',
+            duration: track.duration || 0,
+            url: track.url || '',
+            file: track.file
+        };
+        
+        setCurrentTrack(convertedTrack);
+        const index = queue.findIndex(t => t.id === convertedTrack.id);
         if (index !== -1) {
             setCurrentTrackIndex(index);
+        } else {
+            // If track is not in queue, add it and play
+            setQueue(prev => [convertedTrack, ...prev]);
+            setCurrentTrackIndex(0);
         }
     };
 
-    const handleAddToQueue = (track: Track) => {
-        setQueue(prev => [...prev, track]);
+    const handleAddToQueue = (track: Track | any) => {
+        // Convert LocalFile to Track if needed
+        const convertedTrack: Track = {
+            id: track.id,
+            title: track.title || 'Unknown Title',
+            artist: track.artist || 'Unknown Artist',
+            duration: track.duration || 0,
+            url: track.url || '',
+            file: track.file
+        };
+        
+        setQueue(prev => [...prev, convertedTrack]);
     };
 
     const handleRemoveFromQueue = (trackId: string) => {
@@ -160,59 +186,10 @@ export default function App() {
                 </div>
                 
                 <div className="file-browser-panel">
-                    <div className="panel-header">
-                        <h3>
-                            <i className="fas fa-folder-open"></i>
-                            Library ({sampleTracks.length})
-                        </h3>
-                    </div>
-                    <div className="panel-content">
-                        {sampleTracks.map((track) => (
-                            <div 
-                                key={track.id}
-                                className="track-item track-item-with-art"
-                                onClick={() => handleTrackSelect(track)}
-                            >
-                                <AlbumArt 
-                                    artist={track.artist}
-                                    title={track.title}
-                                    size="small"
-                                />
-                                
-                                <div className="track-info">
-                                    <h4 className="track-title">{track.title}</h4>
-                                    <p className="track-artist">{track.artist}</p>
-                                </div>
-                                
-                                <div className="track-duration">
-                                    {Math.floor(track.duration / 60)}:{(track.duration % 60).toString().padStart(2, '0')}
-                                </div>
-                                
-                                <div className="track-actions">
-                                    <button 
-                                        className="action-btn"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleTrackSelect(track);
-                                        }}
-                                        title="Play now"
-                                    >
-                                        <i className="fas fa-play"></i>
-                                    </button>
-                                    <button 
-                                        className="action-btn"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleAddToQueue(track);
-                                        }}
-                                        title="Add to queue"
-                                    >
-                                        <i className="fas fa-plus"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
+                    <LocalFileSystemBrowser
+                        onTrackSelect={handleTrackSelect}
+                        onAddToQueue={handleAddToQueue}
+                    />
                 </div>
             </div>
         </div>
