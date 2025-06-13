@@ -11,6 +11,7 @@ export type WaveformHandle = {
     seekTo: (seconds: number) => void;
     getCurrentTime: () => number;
     getDuration: () => number;
+    setVolume: (volume: number) => void;
 };
 
 type Props = {
@@ -20,9 +21,7 @@ type Props = {
 
 const Waveform = forwardRef<WaveformHandle, Props>(({ url, onSeek }, ref) => {
     const containerRef = useRef<HTMLDivElement>(null);
-    const wsRef = useRef<WaveSurfer|null>(null);
-
-    // expose methods
+    const wsRef = useRef<WaveSurfer|null>(null);    // expose methods
     useImperativeHandle(ref, () => ({
         playPause: () => wsRef.current?.playPause()!,
         seekTo: (seconds: number) => {
@@ -31,6 +30,7 @@ const Waveform = forwardRef<WaveformHandle, Props>(({ url, onSeek }, ref) => {
         },
         getCurrentTime: () => wsRef.current?.getCurrentTime() || 0,
         getDuration:    () => wsRef.current?.getDuration()    || 0,
+        setVolume: (volume: number) => wsRef.current?.setVolume(volume),
     }), []);
 
     useEffect(() => {
