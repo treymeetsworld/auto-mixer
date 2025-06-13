@@ -94,6 +94,7 @@ export default function App() {
                     onPlayingChange={(p) => console.log('Playing:', p)}
                     onNext={handleNextTrack}
                     onPrevious={handlePreviousTrack}
+                    currentTrackId={currentTrack?.id}
                 />
             </div>
 
@@ -102,7 +103,7 @@ export default function App() {
                 <div className="queue-panel">
                     <div className="panel-header">
                         <h3>
-                            <span>🎵</span>
+                            <i className="fas fa-music"></i>
                             Queue ({queue.length})
                         </h3>
                     </div>
@@ -135,7 +136,7 @@ export default function App() {
                                         }}
                                         title="Remove from queue"
                                     >
-                                        ✕
+                                        <i className="fas fa-times"></i>
                                     </button>
                                 </div>
                             </div>
@@ -146,7 +147,7 @@ export default function App() {
                 <div className="file-browser-panel">
                     <div className="panel-header">
                         <h3>
-                            <span>📁</span>
+                            <i className="fas fa-folder-open"></i>
                             Library ({sampleTracks.length})
                         </h3>
                     </div>
@@ -175,7 +176,7 @@ export default function App() {
                                         }}
                                         title="Play now"
                                     >
-                                        ▶
+                                        <i className="fas fa-play"></i>
                                     </button>
                                     <button 
                                         className="action-btn"
@@ -185,7 +186,7 @@ export default function App() {
                                         }}
                                         title="Add to queue"
                                     >
-                                        +
+                                        <i className="fas fa-plus"></i>
                                     </button>
                                 </div>
                             </div>

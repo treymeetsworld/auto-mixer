@@ -9,6 +9,7 @@ type Props = {
     onPlayingChange: (playing: boolean) => void;
     onNext?: () => void;
     onPrevious?: () => void;
+    currentTrackId?: string; // Add track ID to reset play state when track changes
 };
 
 export default function PlayerControls({
@@ -18,9 +19,17 @@ export default function PlayerControls({
     onPlayingChange,
     onNext,
     onPrevious,
+    currentTrackId,
 }: Props) {
     const [isPlaying, setIsPlaying] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
+
+    // Reset play state when track changes
+    useEffect(() => {
+        setIsPlaying(false);
+        setCurrentTime(0);
+        onPlayingChange(false);
+    }, [currentTrackId, onPlayingChange]);
 
     // poll Wavesurfer for current time so slider and display update
     useEffect(() => {
@@ -51,15 +60,14 @@ export default function PlayerControls({
     const duration = waveformRef.current?.getDuration() || 0;
 
     return (
-        <div className="player-controls">
-            <div className="controls-row">
+        <div className="player-controls">            <div className="controls-row">
                 <button 
                     className="control-btn secondary"
                     onClick={onPrevious}
                     disabled={!onPrevious}
                     title="Previous track"
                 >
-                    ⏮
+                    <i className="fas fa-step-backward"></i>
                 </button>
                 
                 <button 
@@ -67,7 +75,7 @@ export default function PlayerControls({
                     onClick={togglePlay}
                     title={isPlaying ? "Pause" : "Play"}
                 >
-                    {isPlaying ? "⏸" : "▶️"}
+                    <i className={`fas ${isPlaying ? "fa-pause" : "fa-play"}`}></i>
                 </button>
                 
                 <button 
@@ -76,7 +84,7 @@ export default function PlayerControls({
                     disabled={!onNext}
                     title="Next track"
                 >
-                    ⏭
+                    <i className="fas fa-step-forward"></i>
                 </button>
             </div>
 
