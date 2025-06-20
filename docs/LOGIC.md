@@ -1,80 +1,145 @@
-# Application Logic Documentation
+# Auto-Mixer Logic Flow
 
 ## Core Concepts
 
 ### Timeline
-- Timeline is the main container for audio segments
-- Time is measured in milliseconds from timeline start (0)
-- Segments are positioned absolutely on the timeline
-- Total duration is calculated from the last segment's end time
+- The timeline is a continuous line that represents the total mix
+- Each segment on the timeline represents a portion of a track
+- Total duration is the sum of all segment durations
+- Segments maintain their absolute positions once placed
 
 ### Segments
-- Represent portions of source audio files
-- Can be moved, resized, and overlapped
-- Have individual properties (volume, effects, etc.)
-- Maintain reference to source audio via sourceId
+- Each segment represents a portion of a track that will be played
+- Segments always start from 0:00 in their source track unless specified
+- Segment length is determined by:
+  * Full track duration (if no transition)
+  * Duration until transition point (if transitioning out)
+  * Remaining duration (if transitioning in)
 
-## Timeline Operations
+## Application Flow
 
-### Segment Positioning
-1. Each segment has an absolute startTime on the timeline
-2. Segments can overlap freely
-3. Moving a segment updates its startTime
-4. Timeline duration updates automatically
-
-### Duration Calculation
+### 1. Initial Track Selection
 ```
-timelineDuration = Math.max(...segments.map(s => s.startTime + s.duration))
+- There should be no track selected first
+When first track is selected:
+- insert into timeline 
+- Set as currentTrack
+  * segmentStart = 0:00 (start of track)
+  * segmentEnd = track duration
+- Duration = track duration
 ```
 
-### Playback Logic
-1. Current time advances at real-time rate during playback
-2. Active segments are those where:
-   ```
-   segment.startTime <= currentTime < (segment.startTime + segment.duration)
-   ```
-3. Audio playback is synchronized across all active segments
+### 2. Next Track Setup
+```
+When next track is selected:
+- Store as nextTrack
+- No timeline changes yet
+- Wait for transition point
+```
 
-## Audio Processing
+### 3. Transition Point Setting
+```
+When transition point is set:
+- Store transition information
+- Update current segment:
+  * segmentEnd = transition point
+- Create next segment:
+  * segmentStart = 0:00 (default)
+  * segmentEnd = track duration
+- Duration = sum of all segment lengths
+```
 
-### Source Loading
-1. Audio file is loaded as ArrayBuffer
-2. Decoded into AudioBuffer
-3. Waveform data is generated
-4. Source metadata is stored
+### 4. Playback and Time Tracking
+```
+During playback:
+- Track current segment's playback position (0:00 to segmentEnd)
+- Convert segment time to total mix time by adding previous segment durations
+- Check for transition points (when reaching segmentEnd)
+```
 
-### Playback Engine
-1. Maintains Web Audio graph
-2. Creates AudioBufferSourceNode for each active segment
-3. Applies segment-specific effects
-4. Handles real-time parameter changes
+### 5. Transition Handling
+```
+When transition point is reached:
+- Switch to next track
+- Begin playback from track start (unless specified)
+- Update active segment
+```
 
-### Effects Chain
-1. Effects are applied in order per segment
-2. Each effect type has specific parameters
-3. Effects can be bypassed individually
-4. Changes are applied in real-time
+### 6. Time Calculations
 
-## State Management
+#### Segment Time → Mix Time
+```
+- Find which segment is playing
+- Sum durations of all previous segments
+- Add current position in active segment
+```
 
-### Actions
-1. All state changes happen through actions
-2. Actions are processed synchronously
-3. Side effects (audio) handled separately
+#### Mix Time → Segment Time
+```
+- Find which segment contains this time point by comparing with segment durations
+- Subtract previous segment durations to get position in current segment
+```
 
-### Updates
-1. State updates trigger re-renders
-2. Audio engine responds to state changes
-3. UI updates reflect new state
+### Core Properties
 
-## Error Handling
-1. Invalid operations are prevented
-2. Audio loading errors are caught
-3. State remains consistent
-4. User is notified of issues
+#### Segment Properties
+- `segmentStart`: Where to start playing in the source track (defaults to 0:00 unless specified)
+- `segmentEnd`: Where to stop playing in the source track (defaults to track duration unless transitioning)
 
-## Performance
-1. Audio processing in Web Audio thread
-2. State updates batched when possible
-3. UI updates optimized
-4. Large files handled efficiently
+#### Timeline
+- Always starts at 0:00
+- Duration grows as segments are added
+- Duration = sum of all segment lengths
+- Each segment maintains its portion of the total duration
+
+### Examples
+
+1. First Track (3-minute song):
+```
+segmentStart = 0:00 (start of track)
+segmentEnd = 3:00 (end of track)
+Duration = 3:00
+```
+
+2. Second Track (3-minute song) added after first track plays 20 seconds:
+```
+First Segment:
+segmentStart = 0:00 (start of first track)
+segmentEnd = 0:20 (transition point in first track)
+Duration = 0:20
+
+Second Segment:
+segmentStart = 0:00 (start of second track)
+segmentEnd = 3:00 (full second track)
+Duration = 3:20 (0:20 + 3:00)
+```
+
+3. Third Track (2-minute song) added after second track plays 20 seconds:
+```
+First Segment:
+segmentStart = 0:00
+segmentEnd = 0:20
+Duration = 0:20
+
+Second Segment:
+segmentStart = 0:00
+segmentEnd = 0:20 (transition point)
+Duration = 0:40 (0:20 + 0:20)
+
+Third Segment:
+segmentStart = 0:00
+segmentEnd = 2:00 (full track)
+Duration = 2:40 (0:40 + 2:00)
+```
+
+## Implementation Notes
+- Track times and master times need clear conversion
+- Segment history must be maintained
+- Visual representation should match actual playback
+- Need clear rules for segment boundaries
+
+## Questions to Resolve
+1. How should overlapping transitions be handled?
+2. Should segments maintain their own timing or inherit from timeline?
+3. How should the visual representation handle transitions?
+4. What happens to previous segments during transitions?
