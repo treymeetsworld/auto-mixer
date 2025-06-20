@@ -33,6 +33,8 @@ export interface Timeline {
 export interface AppState {
     timeline: Timeline;
     sources: Record<string, AudioSource>;
+    currentTrackId: string | null;
+    nextTrackId: string | null;
 }
 
 // Action Types
@@ -44,7 +46,9 @@ export type ActionType =
     | { type: 'SET_PLAYBACK'; payload: { isPlaying: boolean } }
     | { type: 'SET_CURRENT_TIME'; payload: { time: number } }
     | { type: 'SET_VOLUME'; payload: { volume: number } }
-    | { type: 'SET_MUTED'; payload: { muted: boolean } };
+    | { type: 'SET_MUTED'; payload: { muted: boolean } }
+    | { type: 'SET_CURRENT_TRACK'; payload: { trackId: string | null } }
+    | { type: 'SET_NEXT_TRACK'; payload: { trackId: string | null } };
 
 // Utility Types
 export interface TimeRange {

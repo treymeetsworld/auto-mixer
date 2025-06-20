@@ -11,7 +11,9 @@ export function createInitialState(): AppState {
             volume: 1,
             muted: false
         },
-        sources: {}
+        sources: {},
+        currentTrackId: null,
+        nextTrackId: null
     };
 }
 
@@ -91,6 +93,18 @@ export function reducer(state: AppState, action: ActionType): AppState {
                     ...state.timeline,
                     muted: action.payload.muted
                 }
+            };
+
+        case 'SET_CURRENT_TRACK':
+            return {
+                ...state,
+                currentTrackId: action.payload.trackId
+            };
+
+        case 'SET_NEXT_TRACK':
+            return {
+                ...state,
+                nextTrackId: action.payload.trackId
             };
 
         default:

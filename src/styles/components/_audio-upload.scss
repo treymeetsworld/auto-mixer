@@ -5,21 +5,59 @@
     border-radius: 8px;
     margin-bottom: 1rem;
 
-    input[type="file"] {
+    .hidden {
         display: none;
     }
 
-    label {
-        display: inline-block;
-        padding: 0.5rem 1rem;
-        background-color: #4a90e2;
-        color: white;
-        border-radius: 4px;
-        cursor: pointer;
-        transition: background-color 0.3s;
+    .upload-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-bottom: 1rem;
 
-        &:hover {
-            background-color: #357abd;
+        .upload-button {
+            padding: 0.5rem 1rem;
+            background-color: #4a90e2;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+
+            &:hover {
+                background-color: #357abd;
+                transform: translateY(-1px);
+            }
+
+            &:active {
+                transform: translateY(0);
+            }
+
+            &.next {
+                background-color: #45b97c;
+
+                &:hover {
+                    background-color: #389063;
+                }
+            }
+        }
+    }
+
+    .next-track-info {
+        margin-top: 1rem;
+        padding: 0.5rem;
+        background-color: #f8f9fa;
+        border-radius: 4px;
+        font-size: 0.9rem;
+
+        span:first-child {
+            color: #666;
+            margin-right: 0.5rem;
+        }
+
+        span:last-child {
+            font-weight: 500;
         }
     }
 }

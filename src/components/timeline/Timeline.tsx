@@ -51,27 +51,39 @@ export function Timeline() {
                     {formatTime(state.timeline.currentTime)}
                 </div>
             </div>
-            {sources.map((source: AudioSource) => (
-                <div key={source.id} className="timeline-source">
-                    <div className="source-info">
-                        <span className="source-name">{source.name}</span>
-                        <span className="source-duration">
-                            {formatTime(source.duration)}
-                        </span>
+            {sources.map((source: AudioSource) => {
+                const isCurrentTrack = source.id === state.currentTrackId;
+                const isNextTrack = source.id === state.nextTrackId;
+                
+                return (
+                    <div 
+                        key={source.id} 
+                        className={`timeline-source ${isCurrentTrack ? 'current' : ''} ${isNextTrack ? 'next' : ''}`}
+                    >
+                        <div className="source-info">
+                            <span className="source-name">
+                                {source.name}
+                                {isCurrentTrack && <span className="track-badge current">Current</span>}
+                                {isNextTrack && <span className="track-badge next">Next</span>}
+                            </span>
+                            <span className="source-duration">
+                                {formatTime(source.duration)}
+                            </span>
+                        </div>
+                        <div className="source-waveform">
+                            <div className="waveform-placeholder" />
+                            {state.timeline.isPlaying && isCurrentTrack && (
+                                <div 
+                                    className="playhead"
+                                    style={{ 
+                                        left: `${(state.timeline.currentTime / source.duration) * 100}%` 
+                                    }}
+                                />
+                            )}
+                        </div>
                     </div>
-                    <div className="source-waveform">
-                        <div className="waveform-placeholder" />
-                        {state.timeline.isPlaying && (
-                            <div 
-                                className="playhead"
-                                style={{ 
-                                    left: `${(state.timeline.currentTime / source.duration) * 100}%` 
-                                }}
-                            />
-                        )}
-                    </div>
-                </div>
-            ))}
+                );
+            })}
         </div>
     );
 }
