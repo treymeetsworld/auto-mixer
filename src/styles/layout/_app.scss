@@ -1,0 +1,14 @@
+@use "../abstracts/variables" as *;
+
+.app {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: $spacing-large;
+  text-align: center;
+}
+
+.content {
+  padding: $spacing-medium;
+  background: rgba($primary, 0.1);
+  border-radius: $spacing-small;
+}
