@@ -14,6 +14,7 @@
     "music-tempo": "^1.0.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "sass": "^1.89.2",
     "tone": "^15.1.22",
     "wavesurfer.js": "^7.9.5"
   },

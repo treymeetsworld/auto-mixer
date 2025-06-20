@@ -1,204 +1,137 @@
-import { useRef, useState } from "react";
-import Waveform, { type WaveformHandle } from "./components/Waveform";
-import PlayerControls from "./components/PlayerControls";
-import AlbumArt from "./components/AlbumArt";
-import LocalFileSystemBrowser from "./components/LocalFileSystemBrowser";
-import "./App.css";
+import { useState, useEffect } from 'react';
+import AudioPlayer from './components/AudioPlayer';
+import TrackSelector from './components/TrackSelector';
+import TransitionControl from './components/TransitionControl';
+import type { Track, TransitionPoint } from './types';
+import './App.scss';
 
-interface Track {
-    id: string;
-    title: string;
-    artist: string;
-    duration: number;
-    url: string;
-    file?: File; // For local files
-}
-
+// Sample tracks for testing
 const sampleTracks: Track[] = [
-    {
-        id: "1",
-        title: "The Vibe",
-        artist: "Ayo Jay",
-        duration: 240,
-        url: "/Ayo Jay - The Vibe (Clean).mp3"
-    },
-    {
-        id: "2", 
-        title: "Your Number",
-        artist: "Ayo Jay ft Fetty Wap",
-        duration: 180,
-        url: "/Ayo Jay ft Fetty Wap - Your Number (Clean).mp3"
-    }
+  {
+    id: '1',
+    title: 'The Vibe',
+    artist: 'Ayo Jay',
+    url: '/Ayo Jay - The Vibe (Clean).mp3',
+    duration: 240
+  },
+  {
+    id: '2',
+    title: 'Your Number', 
+    artist: 'Ayo Jay ft Fetty Wap',
+    url: '/Ayo Jay ft Fetty Wap - Your Number (Clean).mp3',
+    duration: 180
+  }
 ];
 
-export default function App() {
-    const [currentTrack, setCurrentTrack] = useState<Track | null>(sampleTracks[0]);
-    const [queue, setQueue] = useState<Track[]>(sampleTracks);
-    const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
+function App() {
+  const [currentTrack, setCurrentTrack] = useState<Track>(sampleTracks[0]);
+  const [nextTrack, setNextTrack] = useState<Track | null>(null);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [transitionPoint, setTransitionPoint] = useState<TransitionPoint | null>(null);
+  const [shouldAutoPlay, setShouldAutoPlay] = useState(false);
+  const [nextStartTime, setNextStartTime] = useState(0);
 
-    const waveformRef = useRef<WaveformHandle>(null);
+  const handleTimeUpdate = (time: number) => {
+    setCurrentTime(time);
+    
+    // Check if we should transition to next track
+    if (transitionPoint && nextTrack && time >= transitionPoint.startTime) {
+      // Transition to next track
+      const startTime = transitionPoint.nextSongStartTime || 0; // Use nextSongStartTime for where next song begins
+      
+      setCurrentTrack(nextTrack);
+      setNextTrack(null);
+      setTransitionPoint(null);
+      setNextStartTime(startTime);
+      setShouldAutoPlay(true);
+      setCurrentTime(startTime);
+    }
+  };
 
-    const handleTrackSelect = (track: Track | any) => {
-        // Convert LocalFile to Track if needed
-        const convertedTrack: Track = {
-            id: track.id,
-            title: track.title || 'Unknown Title',
-            artist: track.artist || 'Unknown Artist',
-            duration: track.duration || 0,
-            url: track.url || '',
-            file: track.file
-        };
-        
-        setCurrentTrack(convertedTrack);
-        const index = queue.findIndex(t => t.id === convertedTrack.id);
-        if (index !== -1) {
-            setCurrentTrackIndex(index);
-        } else {
-            // If track is not in queue, add it and play
-            setQueue(prev => [convertedTrack, ...prev]);
-            setCurrentTrackIndex(0);
-        }
-    };
+  const handleDurationChange = (duration: number) => {
+    // Update track duration if needed
+    console.log('Duration loaded:', duration);
+  };
 
-    const handleAddToQueue = (track: Track | any) => {
-        // Convert LocalFile to Track if needed
-        const convertedTrack: Track = {
-            id: track.id,
-            title: track.title || 'Unknown Title',
-            artist: track.artist || 'Unknown Artist',
-            duration: track.duration || 0,
-            url: track.url || '',
-            file: track.file
-        };
-        
-        setQueue(prev => [...prev, convertedTrack]);
-    };
+  const handleTrackSelect = (track: Track) => {
+    if (track.id === currentTrack.id) return;
+    
+    // If no current track is playing, switch immediately
+    if (!currentTrack) {
+      setCurrentTrack(track);
+      setCurrentTime(0);
+    } else {
+      // Queue as next track
+      setNextTrack(track);
+    }
+  };
 
-    const handleRemoveFromQueue = (trackId: string) => {
-        setQueue(prev => prev.filter(t => t.id !== trackId));
-    };
+  const handleSetTransition = (transition: TransitionPoint) => {
+    setTransitionPoint(transition);
+    console.log('Transition set:', transition);
+  };
 
-    const handleNextTrack = () => {
-        const nextIndex = (currentTrackIndex + 1) % queue.length;
-        setCurrentTrackIndex(nextIndex);
-        setCurrentTrack(queue[nextIndex]);
-    };
+  const handleClearNext = () => {
+    setNextTrack(null);
+    setTransitionPoint(null);
+  };
 
-    const handlePreviousTrack = () => {
-        const prevIndex = currentTrackIndex === 0 ? queue.length - 1 : currentTrackIndex - 1;
-        setCurrentTrackIndex(prevIndex);
-        setCurrentTrack(queue[prevIndex]);
-    };
+  // Reset auto-play state after track changes
+  useEffect(() => {
+    if (shouldAutoPlay) {
+      // Reset auto-play after it's been used
+      const timer = setTimeout(() => {
+        setShouldAutoPlay(false);
+        setNextStartTime(0);
+      }, 100);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [currentTrack, shouldAutoPlay]);
 
-    return (
-        <div className="app">
-            {/* Top Section - Music Player */}
-            <div className="player-section">
-                <div className="main-header">
-                    <h1>Auto-Mix DJ</h1>
-                </div>
-                
-                {/* New layout: Album art next to waveform */}
-                <div className="player-content">
-                    <div className="album-waveform-container">
-                        {currentTrack && (
-                            <AlbumArt 
-                                artist={currentTrack.artist}
-                                title={currentTrack.title}
-                                size="large"
-                            />
-                        )}
-                        
-                        <div className="waveform-track-info">
-                            {currentTrack && (
-                                <div className="track-details">
-                                    <h2>{currentTrack.title}</h2>
-                                    <p>{currentTrack.artist}</p>
-                                </div>
-                            )}
-                            
-                            <div className="waveform-container">
-                                <Waveform
-                                    ref={waveformRef}
-                                    url={currentTrack?.url || ""}
-                                    onSeek={() => {}}
-                                />
-                            </div>
-                        </div>
-                    </div>
+  return (
+    <div className="app">
+      <h1>Auto Mixer</h1>
+      
+      <div className="current-track">
+        <h2>{currentTrack.title}</h2>
+        <p>{currentTrack.artist}</p>
+        {transitionPoint && nextTrack && (
+          <div className="transition-info">
+            <small>
+              Will transition to "{nextTrack.title}" at {Math.floor(transitionPoint.startTime / 60)}:{(transitionPoint.startTime % 60).toString().padStart(2, '0')}
+            </small>
+          </div>
+        )}
+      </div>
 
-                    {/* Player controls on one line */}
-                    <PlayerControls
-                        waveformRef={waveformRef}
-                        onSeek={() => {}}
-                        onTimeUpdate={() => {}}
-                        onPlayingChange={() => {}}
-                        onNext={handleNextTrack}
-                        onPrevious={handlePreviousTrack}
-                        currentTrackId={currentTrack?.id}
-                    />
-                </div>
-            </div>
+      <AudioPlayer 
+        src={currentTrack.url}
+        onTimeUpdate={handleTimeUpdate}
+        onDurationChange={handleDurationChange}
+        autoPlay={shouldAutoPlay}
+        startTime={nextStartTime}
+      />
 
-            {/* Bottom Section - Side by Side Panels */}
-            <div className="panels-section">
-                <div className="queue-panel">
-                    <div className="panel-header">
-                        <h3>
-                            <i className="fas fa-music"></i>
-                            Queue ({queue.length})
-                        </h3>
-                    </div>
-                    <div className="panel-content">
-                        {queue.map((track, index) => (
-                            <div 
-                                key={track.id}
-                                className={`track-item track-item-with-art ${currentTrack?.id === track.id ? 'current' : ''}`}
-                                onClick={() => handleTrackSelect(track)}
-                            >
-                                <div className="track-number">
-                                    {index + 1}
-                                </div>
-                                
-                                <AlbumArt 
-                                    artist={track.artist}
-                                    title={track.title}
-                                    size="small"
-                                />
-                                
-                                <div className="track-info">
-                                    <h4 className="track-title">{track.title}</h4>
-                                    <p className="track-artist">{track.artist}</p>
-                                </div>
-                                
-                                <div className="track-duration">
-                                    {Math.floor(track.duration / 60)}:{(track.duration % 60).toString().padStart(2, '0')}
-                                </div>
-                                
-                                <div className="track-actions">
-                                    <button 
-                                        className="action-btn"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleRemoveFromQueue(track.id);
-                                        }}
-                                        title="Remove from queue"
-                                    >
-                                        <i className="fas fa-times"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-                
-                <div className="file-browser-panel">
-                    <LocalFileSystemBrowser
-                        onTrackSelect={handleTrackSelect}
-                        onAddToQueue={handleAddToQueue}
-                    />
-                </div>
-            </div>
-        </div>
-    );
+      <div className="track-info">
+        <p>Current Time: {Math.floor(currentTime)}s</p>
+      </div>
+
+      <TransitionControl
+        currentTrack={currentTrack}
+        nextTrack={nextTrack}
+        currentTime={currentTime}
+        onSetTransition={handleSetTransition}
+        onClearNext={handleClearNext}
+      />
+
+      <TrackSelector 
+        tracks={sampleTracks.filter(track => track.id !== currentTrack.id)}
+        onSelectTrack={handleTrackSelect}
+        currentTrackId={nextTrack?.id}
+      />
+    </div>
+  );
 }
+
+export default App;

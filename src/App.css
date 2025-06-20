@@ -1,7 +1,0 @@
-/* Main CSS file - imports all component styles */
-@import "./styles/base.css";
-@import "./styles/player.css"; 
-@import "./styles/panels.css";
-@import "./styles/tracks.css";
-@import "./styles/controls.css";
-@import "./styles/album-art.css";

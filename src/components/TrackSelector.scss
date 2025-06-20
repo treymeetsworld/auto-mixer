@@ -1,0 +1,58 @@
+@import '../styles/variables';
+@import '../styles/mixins';
+
+.track-selector {
+  @include card;
+  margin-top: $spacing-lg;
+  
+  h3 {
+    color: $primary-color;
+    margin-bottom: $spacing-md;
+    font-size: 1.2rem;
+  }
+  
+  .track-list {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-sm;
+  }
+  
+  .track-item {
+    @include flex-between;
+    padding: $spacing-md;
+    background: $background-light;
+    border-radius: $border-radius-md;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 2px solid transparent;
+    
+    &:hover {
+      background: lighten($background-light, 5%);
+      transform: translateY(-1px);
+    }
+    
+    &.current {
+      border-color: $primary-color;
+      background: rgba($primary-color, 0.1);
+    }
+    
+    .track-info {
+      h4 {
+        color: $text-primary;
+        margin-bottom: 2px;
+        font-size: 1rem;
+      }
+      
+      p {
+        color: $text-secondary;
+        font-size: 0.9rem;
+      }
+    }
+    
+    .track-duration {
+      color: $text-muted;
+      font-family: monospace;
+      font-size: 0.9rem;
+    }
+  }
+}
