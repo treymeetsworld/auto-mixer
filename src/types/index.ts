@@ -25,6 +25,8 @@ export interface Timeline {
     currentTime: number;  // Current playback position
     isPlaying: boolean;
     zoom: number;        // Zoom level for UI
+    volume: number;      // Master volume (0-1)
+    muted: boolean;      // Master mute state
 }
 
 // State Types
@@ -40,7 +42,9 @@ export type ActionType =
     | { type: 'UPDATE_SEGMENT'; payload: Segment }
     | { type: 'LOAD_SOURCE'; payload: AudioSource }
     | { type: 'SET_PLAYBACK'; payload: { isPlaying: boolean } }
-    | { type: 'SET_CURRENT_TIME'; payload: { time: number } };
+    | { type: 'SET_CURRENT_TIME'; payload: { time: number } }
+    | { type: 'SET_VOLUME'; payload: { volume: number } }
+    | { type: 'SET_MUTED'; payload: { muted: boolean } };
 
 // Utility Types
 export interface TimeRange {

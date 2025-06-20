@@ -6,6 +6,8 @@ export class AudioEngine {
     private sources: Map<string, AudioBuffer>;
     private activeNodes: Map<string, AudioBufferSourceNode>;
     private mainGainNode: GainNode;
+    private pausedTime: number = 0;
+    private startTime: number = 0;
 
     constructor() {
         this.context = new AudioContext();
@@ -57,15 +59,20 @@ export class AudioEngine {
         sourceId: string, 
         buffer: AudioBuffer,
         offset: number = 0,
-        duration?: number
+        duration?: number,
+        fromPausedPosition: boolean = false
     ): string {
         const nodeId = `${sourceId}-${Date.now()}`;
-        const startTime = this.context.currentTime;
+        this.startTime = this.context.currentTime;
+        
+        const effectiveOffset = fromPausedPosition ? 
+            (offset + this.pausedTime) / 1000 : // Add paused time if resuming
+            offset / 1000; // Convert ms to seconds
         
         const sourceNode = this.createSourceNode(
             buffer,
-            startTime,
-            offset / 1000, // Convert ms to seconds
+            this.startTime,
+            effectiveOffset,
             duration ? duration / 1000 : undefined
         );
 
@@ -75,6 +82,34 @@ export class AudioEngine {
         };
 
         return nodeId;
+    }
+
+    /**
+     * Pause all playing audio and store current position
+     */
+    pause() {
+        if (this.startTime > 0) {
+            this.pausedTime = (this.context.currentTime - this.startTime) * 1000;
+        }
+        this.stopAll();
+    }
+
+    /**
+     * Get current playback position considering paused state
+     */
+    getCurrentPosition(): number {
+        if (this.activeNodes.size === 0) {
+            return this.pausedTime;
+        }
+        return ((this.context.currentTime - this.startTime) * 1000) + this.pausedTime;
+    }
+
+    /**
+     * Reset playback position
+     */
+    resetPosition() {
+        this.pausedTime = 0;
+        this.startTime = 0;
     }
 
     /**

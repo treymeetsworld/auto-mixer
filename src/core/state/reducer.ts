@@ -7,7 +7,9 @@ export function createInitialState(): AppState {
             duration: 0,
             currentTime: 0,
             isPlaying: false,
-            zoom: 1
+            zoom: 1,
+            volume: 1,
+            muted: false
         },
         sources: {}
     };
@@ -70,6 +72,24 @@ export function reducer(state: AppState, action: ActionType): AppState {
                 timeline: {
                     ...state.timeline,
                     currentTime: action.payload.time
+                }
+            };
+
+        case 'SET_VOLUME':
+            return {
+                ...state,
+                timeline: {
+                    ...state.timeline,
+                    volume: action.payload.volume
+                }
+            };
+
+        case 'SET_MUTED':
+            return {
+                ...state,
+                timeline: {
+                    ...state.timeline,
+                    muted: action.payload.muted
                 }
             };
 

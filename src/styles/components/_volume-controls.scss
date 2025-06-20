@@ -1,0 +1,96 @@
+.volume-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+
+    .volume-button {
+        background: none;
+        border: none;
+        font-size: 1.2rem;
+        cursor: pointer;
+        padding: 0.25rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 4px;
+        transition: background-color 0.3s;
+
+        &:hover {
+            background-color: rgba(0, 0, 0, 0.1);
+        }
+    }
+
+    .volume-slider {
+        width: 100px;
+        height: 4px;
+        -webkit-appearance: none;
+        background: #e0e0e0;
+        border-radius: 2px;
+        outline: none;
+        transition: background 0.3s;
+
+        &::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 12px;
+            height: 12px;
+            background: #4a90e2;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.1s;
+
+            &:hover {
+                transform: scale(1.2);
+            }
+        }
+
+        &::-moz-range-thumb {
+            width: 12px;
+            height: 12px;
+            background: #4a90e2;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.1s;
+
+            &:hover {
+                transform: scale(1.2);
+            }
+        }
+
+        &::-ms-thumb {
+            width: 12px;
+            height: 12px;
+            background: #4a90e2;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.1s;
+
+            &:hover {
+                transform: scale(1.2);
+            }
+        }
+
+        &::-webkit-slider-runnable-track {
+            height: 4px;
+            background: linear-gradient(to right, #4a90e2 0%, #4a90e2 var(--volume-percent, 100%), #e0e0e0 var(--volume-percent, 100%));
+            border-radius: 2px;
+        }
+
+        &::-moz-range-track {
+            height: 4px;
+            background: #e0e0e0;
+            border-radius: 2px;
+        }
+
+        &::-ms-track {
+            height: 4px;
+            background: #e0e0e0;
+            border-radius: 2px;
+        }
+    }
+}

@@ -13,6 +13,9 @@ export function AudioUpload() {
             // Create object URL for the file
             const url = URL.createObjectURL(file);
             
+            // Resume the audio context first (needed for Safari and Chrome's autoplay policy)
+            await audioEngine.resume();
+            
             // Load the audio file into the audio engine
             const buffer = await audioEngine.loadAudio(url);
             
