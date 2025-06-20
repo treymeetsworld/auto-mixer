@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import AudioPlayer, { type AudioPlayerRef } from './components/AudioPlayer';
 import TrackSelector from './components/TrackSelector';
 import TransitionControl from './components/TransitionControl';
-import MasterTimelineComponent from './components/MasterTimeline';
+import MasterTimelineControls from './components/MasterTimelineControls';
 import type { Track, TransitionPoint, MasterTimeline } from './types';
 import { calculateMasterTimeline, getMasterTimeFromTrackTime, getTrackTimeFromMasterTime } from './utils/timeline';
 import './App.scss';
@@ -30,6 +30,7 @@ function App() {
   const [isInTransition, setIsInTransition] = useState(false); // Track if we're in the middle of a transition
   const [isInSecondSegment, setIsInSecondSegment] = useState(false); // Track if we're in second part of a mix
   const [lastTransition, setLastTransition] = useState<TransitionPoint | null>(null); // Keep the last transition for timeline continuity
+  const [isMasterPlaying, setIsMasterPlaying] = useState(false); // Track master timeline play state
   const [currentTrack, setCurrentTrack] = useState<Track>(sampleTracks[0]);
   const [nextTrack, setNextTrack] = useState<Track | null>(null);
   const [currentTime, setCurrentTime] = useState(0);
@@ -72,6 +73,14 @@ function App() {
     console.log('Duration loaded:', duration);
   };
 
+  const handleAudioPlay = () => {
+    setIsMasterPlaying(true);
+  };
+
+  const handleAudioPause = () => {
+    setIsMasterPlaying(false);
+  };
+
   const handleTrackSelect = (track: Track) => {
     if (track.id === currentTrack.id) return;
     
@@ -102,6 +111,16 @@ function App() {
       // Seek the audio player
       audioPlayerRef.current?.seek(result.trackTime);
     }
+  };
+
+  const handleMasterPlay = () => {
+    audioPlayerRef.current?.play();
+    setIsMasterPlaying(true);
+  };
+
+  const handleMasterPause = () => {
+    audioPlayerRef.current?.pause();
+    setIsMasterPlaying(false);
   };
 
   const handleSetTransition = (transition: TransitionPoint) => {
@@ -161,30 +180,33 @@ function App() {
         {transitionPoint && nextTrack && (
           <div className="transition-info">
             <small>
-              Will transition to "{nextTrack.title}" at {Math.floor(transitionPoint.startTime / 60)}:{(transitionPoint.startTime % 60).toString().padStart(2, '0')} | 
-              Total mix duration: {Math.floor(masterTimeline.totalDuration / 60)}:{(masterTimeline.totalDuration % 60).toString().padStart(2, '0')}
+              Next: "{nextTrack.title}" | Total mix: {Math.floor(masterTimeline.totalDuration / 60)}:{(masterTimeline.totalDuration % 60).toString().padStart(2, '0')}
             </small>
           </div>
         )}
       </div>
 
-      <MasterTimelineComponent
+      <MasterTimelineControls
         timeline={masterTimeline}
         currentMasterTime={currentMasterTime}
+        isPlaying={isMasterPlaying}
         onSeek={handleMasterSeek}
+        onPlay={handleMasterPlay}
+        onPause={handleMasterPause}
       />
 
-      <AudioPlayer 
-        ref={audioPlayerRef}
-        src={currentTrack.url}
-        onTimeUpdate={handleTimeUpdate}
-        onDurationChange={handleDurationChange}
-        autoPlay={shouldAutoPlay}
-        startTime={nextStartTime}
-      />
-
-      <div className="track-info">
-        <p>Track Time: {Math.floor(currentTime)}s | Master Time: {Math.floor(currentMasterTime)}s</p>
+      {/* Hidden AudioPlayer - only for actual playback */}
+      <div style={{ display: 'none' }}>
+        <AudioPlayer 
+          ref={audioPlayerRef}
+          src={currentTrack.url}
+          onTimeUpdate={handleTimeUpdate}
+          onDurationChange={handleDurationChange}
+          onPlay={handleAudioPlay}
+          onPause={handleAudioPause}
+          autoPlay={shouldAutoPlay}
+          startTime={nextStartTime}
+        />
       </div>
 
       <TransitionControl
