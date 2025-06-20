@@ -55,16 +55,33 @@ function App() {
       setIsInTransition(true);
       setLastTransition(transitionPoint); // Store the transition
       
+      // Check if this is a same-song transition before updating state
+      const isSameSongTransition = currentTrack.id === nextTrack.id;
+      
       // Transition to next track
       const startTime = transitionPoint.nextSongStartTime || 0;
       
+      // Update state for the new segment
       setCurrentTrack(nextTrack);
       setNextTrack(null);
       setTransitionPoint(null);
       setNextStartTime(startTime);
-      setShouldAutoPlay(true);
       setCurrentTime(startTime);
       setIsInSecondSegment(true); // Now we're in the second segment
+      
+      // Force audio player to seek/play
+      setShouldAutoPlay(true);
+      
+      if (isSameSongTransition) {
+        console.log(`Same-song transition: seeking to ${startTime}s`);
+        // For same-song transitions, force a seek via the audio player ref
+        setTimeout(() => {
+          audioPlayerRef.current?.seek(startTime);
+          if (isMasterPlaying) {
+            audioPlayerRef.current?.play();
+          }
+        }, 50); // Small delay to ensure state updates have processed
+      }
     }
   };
 
@@ -82,7 +99,7 @@ function App() {
   };
 
   const handleTrackSelect = (track: Track) => {
-    if (track.id === currentTrack.id) return;
+    // Allow the same song to be selected multiple times
     
     // If no current track is playing, switch immediately
     if (!currentTrack) {
@@ -95,7 +112,7 @@ function App() {
       setMasterTimeline(newTimeline);
       setCurrentMasterTime(0);
     } else {
-      // Queue as next track
+      // Queue as next track (even if it's the same song)
       setNextTrack(track);
       // Don't recalculate timeline yet - wait for transition to be set
     }
@@ -162,9 +179,21 @@ function App() {
       if (isInSecondSegment && lastTransition && !nextTrack && !transitionPoint) {
         const newTimeline = calculateMasterTimeline(currentTrack, null, lastTransition, true);
         setMasterTimeline(newTimeline);
+      } else if (nextTrack) {
+        // When a next track is selected (even if it's the same song), 
+        // preserve the current timeline structure until a transition is set
+        if (transitionPoint) {
+          // Normal timeline calculation with transition
+          const newTimeline = calculateMasterTimeline(currentTrack, nextTrack, transitionPoint);
+          setMasterTimeline(newTimeline);
+        } else {
+          // Next track selected but no transition yet - keep current timeline
+          // This prevents the timeline from "resetting" when the same song is queued
+          console.log('Next track selected, waiting for transition to be set');
+        }
       } else {
-        // Normal timeline calculation
-        const newTimeline = calculateMasterTimeline(currentTrack, nextTrack, transitionPoint);
+        // No next track - show just current track
+        const newTimeline = calculateMasterTimeline(currentTrack, null, null);
         setMasterTimeline(newTimeline);
       }
     }
@@ -218,9 +247,10 @@ function App() {
       />
 
       <TrackSelector 
-        tracks={sampleTracks.filter(track => track.id !== currentTrack.id)}
+        tracks={sampleTracks}
         onSelectTrack={handleTrackSelect}
-        currentTrackId={nextTrack?.id}
+        currentTrackId={currentTrack?.id}
+        nextTrackId={nextTrack?.id}
       />
     </div>
   );

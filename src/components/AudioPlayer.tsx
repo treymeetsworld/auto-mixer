@@ -122,6 +122,25 @@ const AudioPlayer = forwardRef<AudioPlayerRef, AudioPlayerProps>(({
     };
   }, [src, autoPlay, startTime]);
 
+  // Handle startTime changes independently (for same-song transitions)
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio || !src) return;
+
+    // If the audio is ready and we have a new startTime, seek to it immediately
+    if (audio.readyState >= 2) { // HAVE_CURRENT_DATA or higher
+      if (startTime !== audio.currentTime) {
+        audio.currentTime = startTime;
+        setCurrentTime(startTime);
+        
+        // If autoPlay is true, ensure playback continues
+        if (autoPlay && audio.paused) {
+          audio.play().catch(console.error);
+        }
+      }
+    }
+  }, [startTime, autoPlay]);
+
   // Expose methods via ref
   useImperativeHandle(ref, () => ({
     seek: (time: number) => {

@@ -49,6 +49,19 @@
       color: $text-secondary;
       font-size: 0.9rem;
     }
+    
+    .same-song-notice {
+      margin-top: $spacing-sm;
+      padding: $spacing-sm;
+      background: rgba($secondary-color, 0.1);
+      border-left: 3px solid $secondary-color;
+      border-radius: $border-radius-sm;
+      
+      small {
+        color: $secondary-color;
+        font-weight: 500;
+      }
+    }
   }
   
   .transition-settings {

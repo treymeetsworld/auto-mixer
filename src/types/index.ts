@@ -12,10 +12,13 @@ export interface TransitionPoint {
   songId: string;
   startTime: number; // where current song should transition (in seconds)
   nextSongStartTime?: number;  // where next song should start playing (optional, defaults to 0)
+  currentSegmentId?: string; // which segment this transition is for
+  nextSegmentId?: string; // which segment the transition is going to
 }
 
 export interface TimelineSegment {
-  trackId: string;
+  segmentId: string; // Unique ID for this specific segment instance
+  trackId: string;   // Original track ID (can be duplicate)
   track: Track;
   startTime: number; // when this segment starts in master timeline
   endTime: number;   // when this segment ends in master timeline

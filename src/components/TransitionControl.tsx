@@ -56,6 +56,11 @@ export default function TransitionControl({
       <div className="next-track-info">
         <h4>Next: {nextTrack.title}</h4>
         <p>by {nextTrack.artist}</p>
+        {nextTrack.id === currentTrack.id && (
+          <div className="same-song-notice">
+            <small>⚡ Same song will play again - each addition creates a unique segment</small>
+          </div>
+        )}
       </div>
 
       <div className="transition-settings">
