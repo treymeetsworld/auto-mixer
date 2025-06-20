@@ -1,0 +1,168 @@
+@import '../styles/variables';
+@import '../styles/mixins';
+
+.master-timeline {
+  @include card;
+  margin-bottom: $spacing-lg;
+  
+  .timeline-header {
+    @include flex-between;
+    margin-bottom: $spacing-md;
+    
+    h3 {
+      color: $primary-color;
+      font-size: 1.2rem;
+    }
+    
+    .time-info {
+      color: $text-secondary;
+      font-family: monospace;
+      
+      .current-time {
+        color: $primary-color;
+        font-weight: bold;
+      }
+      
+      .separator {
+        margin: 0 $spacing-xs;
+        color: $text-muted;
+      }
+    }
+  }
+  
+  .timeline-container {
+    position: relative;
+    height: 80px;
+    background: $background-light;
+    border-radius: $border-radius-md;
+    cursor: pointer;
+    overflow: hidden;
+    
+    .timeline-progress {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 100%;
+      
+      .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, 
+          rgba($primary-color, 0.3) 0%, 
+          rgba($primary-color, 0.1) 100%);
+        transition: width 0.1s ease;
+      }
+    }
+    
+    .timeline-segments {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 100%;
+      
+      .timeline-segment {
+        position: absolute;
+        top: 10px;
+        height: 30px;
+        background: rgba($text-primary, 0.1);
+        border: 1px solid rgba($text-primary, 0.2);
+        border-radius: $border-radius-sm;
+        overflow: hidden;
+        
+        &.transition {
+          background: rgba($secondary-color, 0.2);
+          border-color: rgba($secondary-color, 0.4);
+        }
+        
+        .segment-info {
+          padding: 2px $spacing-xs;
+          font-size: 0.7rem;
+          color: $text-primary;
+          white-space: nowrap;
+          overflow: hidden;
+          
+          .track-title {
+            display: block;
+            font-weight: 500;
+            line-height: 1.2;
+          }
+          
+          .track-time {
+            display: block;
+            color: $text-muted;
+            font-size: 0.6rem;
+            line-height: 1;
+          }
+        }
+      }
+    }
+    
+    .transition-markers {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 100%;
+      
+      .transition-marker {
+        position: absolute;
+        top: 0;
+        width: 2px;
+        height: 100%;
+        transform: translateX(-1px);
+        
+        .marker-line {
+          width: 2px;
+          height: 100%;
+          background: $secondary-color;
+          box-shadow: 0 0 4px rgba($secondary-color, 0.5);
+        }
+        
+        .marker-label {
+          position: absolute;
+          top: -20px;
+          left: 50%;
+          transform: translateX(-50%);
+          background: $secondary-color;
+          color: white;
+          font-size: 0.7rem;
+          font-weight: bold;
+          padding: 2px 4px;
+          border-radius: $border-radius-sm;
+          line-height: 1;
+        }
+      }
+    }
+    
+    .current-time-indicator {
+      position: absolute;
+      top: 0;
+      width: 3px;
+      height: 100%;
+      background: $primary-color;
+      transform: translateX(-1.5px);
+      box-shadow: 0 0 6px rgba($primary-color, 0.7);
+      z-index: 10;
+      
+      &::before {
+        content: '';
+        position: absolute;
+        top: -5px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 0;
+        height: 0;
+        border-left: 5px solid transparent;
+        border-right: 5px solid transparent;
+        border-top: 5px solid $primary-color;
+      }
+    }
+    
+    &:hover {
+      .timeline-segments .timeline-segment {
+        opacity: 0.8;
+      }
+    }
+  }
+}

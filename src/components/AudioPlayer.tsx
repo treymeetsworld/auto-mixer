@@ -1,5 +1,11 @@
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect, useImperativeHandle, forwardRef } from 'react';
 import './AudioPlayer.scss';
+
+export interface AudioPlayerRef {
+  seek: (time: number) => void;
+  play: () => void;
+  pause: () => void;
+}
 
 interface AudioPlayerProps {
   src: string;
@@ -11,7 +17,7 @@ interface AudioPlayerProps {
   startTime?: number;
 }
 
-export default function AudioPlayer({ 
+const AudioPlayer = forwardRef<AudioPlayerRef, AudioPlayerProps>(({ 
   src, 
   onTimeUpdate, 
   onDurationChange,
@@ -19,7 +25,7 @@ export default function AudioPlayer({
   onPause,
   autoPlay = false,
   startTime = 0
-}: AudioPlayerProps) {
+}, ref) => {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -51,16 +57,34 @@ export default function AudioPlayer({
       onPause?.();
     };
 
+    const handleEnded = () => {
+      setIsPlaying(false);
+    };
+
+    const handleWaiting = () => {
+      setIsPlaying(false);
+    };
+
+    const handlePlaying = () => {
+      setIsPlaying(true);
+    };
+
     audio.addEventListener('timeupdate', handleTimeUpdate);
     audio.addEventListener('durationchange', handleDurationChange);
     audio.addEventListener('play', handlePlay);
     audio.addEventListener('pause', handlePause);
+    audio.addEventListener('ended', handleEnded);
+    audio.addEventListener('waiting', handleWaiting);
+    audio.addEventListener('playing', handlePlaying);
 
     return () => {
       audio.removeEventListener('timeupdate', handleTimeUpdate);
       audio.removeEventListener('durationchange', handleDurationChange);
       audio.removeEventListener('play', handlePlay);
       audio.removeEventListener('pause', handlePause);
+      audio.removeEventListener('ended', handleEnded);
+      audio.removeEventListener('waiting', handleWaiting);
+      audio.removeEventListener('playing', handlePlaying);
     };
   }, [onTimeUpdate, onDurationChange, onPlay, onPause]);
 
@@ -79,28 +103,56 @@ export default function AudioPlayer({
       // Auto-play if requested
       if (autoPlay) {
         audio.play().catch(console.error);
+        // Note: don't set setIsPlaying(true) here - let the 'play' event handler do it
       }
     };
 
-    // Reset state when source changes
-    setCurrentTime(startTime);
-    setIsPlaying(false);
-    
+    const handleLoadStart = () => {
+      // Reset state when source starts loading
+      setCurrentTime(startTime);
+      setIsPlaying(false);
+    };
+
     audio.addEventListener('canplay', handleCanPlay);
+    audio.addEventListener('loadstart', handleLoadStart);
     
     return () => {
       audio.removeEventListener('canplay', handleCanPlay);
+      audio.removeEventListener('loadstart', handleLoadStart);
     };
   }, [src, autoPlay, startTime]);
+
+  // Expose methods via ref
+  useImperativeHandle(ref, () => ({
+    seek: (time: number) => {
+      const audio = audioRef.current;
+      if (audio) {
+        audio.currentTime = time;
+        setCurrentTime(time);
+      }
+    },
+    play: () => {
+      const audio = audioRef.current;
+      if (audio) {
+        audio.play().catch(console.error);
+      }
+    },
+    pause: () => {
+      const audio = audioRef.current;
+      if (audio) {
+        audio.pause();
+      }
+    }
+  }), []);
 
   const togglePlayPause = () => {
     const audio = audioRef.current;
     if (!audio) return;
 
-    if (isPlaying) {
-      audio.pause();
+    if (audio.paused) {
+      audio.play().catch(console.error);
     } else {
-      audio.play();
+      audio.pause();
     }
   };
 
@@ -153,4 +205,8 @@ export default function AudioPlayer({
       </div>
     </div>
   );
-}
+});
+
+AudioPlayer.displayName = 'AudioPlayer';
+
+export default AudioPlayer;
