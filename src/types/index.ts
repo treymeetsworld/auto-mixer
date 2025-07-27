@@ -1,57 +1,35 @@
-// Audio Source Types
+// Core types following LOGIC.md
+
 export interface AudioSource {
-    id: string;
-    url: string;
-    duration: number;
-    name: string;
-    waveform?: number[];
-    buffer?: AudioBuffer;
+  id: string;
+  url: string;
+  duration: number; // in milliseconds
+  name: string;
+  buffer?: AudioBuffer;
 }
 
-// Timeline Types
 export interface Segment {
-    id: string;
-    sourceId: string;
-    startTime: number;     // Position in timeline (ms)
-    duration: number;      // Duration of segment (ms)
-    sourceOffset: number;  // Start position in source audio (ms)
-    volume: number;       // 0-1
-    muted: boolean;
+  id: string;
+  sourceId: string;
+  segmentStart: number; // Where to start in source track (ms)
+  segmentEnd: number;   // Where to end in source track (ms)
+  timelineStart: number; // When this segment starts in timeline (ms)
 }
 
 export interface Timeline {
-    segments: Segment[];
-    duration: number;     // Total timeline duration
-    currentTime: number;  // Current playback position
-    isPlaying: boolean;
-    zoom: number;        // Zoom level for UI
-    volume: number;      // Master volume (0-1)
-    muted: boolean;      // Master mute state
+  segments: Segment[];
+  duration: number; // Total timeline duration (ms)
 }
 
-// State Types
 export interface AppState {
-    timeline: Timeline;
-    sources: Record<string, AudioSource>;
-    currentTrackId: string | null;
-    nextTrackId: string | null;
+  sources: Record<string, AudioSource>;
+  timeline: Timeline;
+  currentTrack: string | null;  // Currently selected track
+  nextTrack: string | null;     // Next track waiting for transition
 }
 
-// Action Types
 export type ActionType = 
-    | { type: 'ADD_SEGMENT'; payload: Segment }
-    | { type: 'REMOVE_SEGMENT'; payload: string }
-    | { type: 'UPDATE_SEGMENT'; payload: Segment }
-    | { type: 'LOAD_SOURCE'; payload: AudioSource }
-    | { type: 'SET_PLAYBACK'; payload: { isPlaying: boolean } }
-    | { type: 'SET_CURRENT_TIME'; payload: { time: number } }
-    | { type: 'SET_VOLUME'; payload: { volume: number } }
-    | { type: 'SET_MUTED'; payload: { muted: boolean } }
-    | { type: 'SET_CURRENT_TRACK'; payload: { trackId: string | null } }
-    | { type: 'SET_NEXT_TRACK'; payload: { trackId: string | null } };
-
-// Utility Types
-export interface TimeRange {
-    start: number;
-    end: number;
-}
+  | { type: 'LOAD_SOURCE'; payload: AudioSource }
+  | { type: 'SELECT_FIRST_TRACK'; payload: { sourceId: string } }
+  | { type: 'SELECT_NEXT_TRACK'; payload: { sourceId: string } }
+  | { type: 'SET_TRANSITION'; payload: { transitionPoint: number } };
