@@ -70,76 +70,80 @@ function App() {
       <h1>Auto Mixer</h1>
       
       <div className="content">
-        <div className="timeline-preview">
-          <h3>Timeline Segments</h3>
-          {state.timeline.segments.length > 0 ? (
-            state.timeline.segments.map(segment => {
-              const source = state.sources[segment.sourceId];
-              return (
-                <div key={segment.id} className="segment">
-                  <strong>🎵 {source?.name}</strong>
-                  <div className="segment-details">
-                    <div className="detail-item">
-                      <div className="label">Track Range:</div>
-                      <div>{formatTime(segment.segmentStart)} - {formatTime(segment.segmentEnd)}</div>
-                    </div>
-                    <div className="detail-item">
-                      <div className="label">Timeline Position:</div>
-                      <div>{formatTime(segment.timelineStart)}</div>
+        <div className="main-content">
+          <div className="timeline-preview">
+            <h3>Timeline Segments</h3>
+            {state.timeline.segments.length > 0 ? (
+              state.timeline.segments.map(segment => {
+                const source = state.sources[segment.sourceId];
+                return (
+                  <div key={segment.id} className="segment">
+                    <strong>🎵 {source?.name}</strong>
+                    <div className="segment-details">
+                      <div className="detail-item">
+                        <div className="label">Track Range:</div>
+                        <div>{formatTime(segment.segmentStart)} - {formatTime(segment.segmentEnd)}</div>
+                      </div>
+                      <div className="detail-item">
+                        <div className="label">Timeline Position:</div>
+                        <div>{formatTime(segment.timelineStart)}</div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              );
-            })
-          ) : (
-            <div className="no-segments">
-              No segments yet. Upload audio files to see timeline segments.
-            </div>
+                );
+              })
+            ) : (
+              <div className="no-segments">
+                No segments yet. Upload audio files to see timeline segments.
+              </div>
+            )}
+          </div>
+
+          <div className="upload-section">
+            <input
+              type="file"
+              accept="audio/*"
+              onChange={handleFileUpload}
+              id="audio-upload"
+            />
+            <label htmlFor="audio-upload" className="upload-button">
+              📁 Upload Audio File
+            </label>
+            <p style={{ marginTop: '16px', color: '#666' }}>
+              {!state.currentTrack ? 'Upload your first track to get started' : 
+               !state.nextTrack ? 'Upload a second track to create transitions' :
+               'Ready to set transitions!'}
+            </p>
+          </div>
+
+          {state.currentTrack && state.nextTrack && (
+            <button onClick={handleSetTransition} className="transition-button">
+              ⚡ Set Transition at 10s
+            </button>
           )}
         </div>
 
-        <div className="upload-section">
-          <input
-            type="file"
-            accept="audio/*"
-            onChange={handleFileUpload}
-            id="audio-upload"
-          />
-          <label htmlFor="audio-upload" className="upload-button">
-            📁 Upload Audio File
-          </label>
-          <p style={{ marginTop: '16px', color: '#666' }}>
-            {!state.currentTrack ? 'Upload your first track to get started' : 
-             !state.nextTrack ? 'Upload a second track to create transitions' :
-             'Ready to set transitions!'}
-          </p>
+        <div className="sidebar">
+          <div className="status">
+            <h3>📊 Timeline Status</h3>
+            <p>
+              <strong>Current Track:</strong> 
+              <span>{state.currentTrack ? state.sources[state.currentTrack]?.name : 'None'}</span>
+            </p>
+            <p>
+              <strong>Next Track:</strong> 
+              <span>{state.nextTrack ? state.sources[state.nextTrack]?.name : 'None'}</span>
+            </p>
+            <p>
+              <strong>Timeline Duration:</strong> 
+              <span>{formatTime(state.timeline.duration)}</span>
+            </p>
+            <p>
+              <strong>Total Segments:</strong> 
+              <span>{state.timeline.segments.length}</span>
+            </p>
+          </div>
         </div>
-
-        <div className="status">
-          <h3>📊 Timeline Status</h3>
-          <p>
-            <strong>Current Track:</strong> 
-            <span>{state.currentTrack ? state.sources[state.currentTrack]?.name : 'None'}</span>
-          </p>
-          <p>
-            <strong>Next Track:</strong> 
-            <span>{state.nextTrack ? state.sources[state.nextTrack]?.name : 'None'}</span>
-          </p>
-          <p>
-            <strong>Timeline Duration:</strong> 
-            <span>{formatTime(state.timeline.duration)}</span>
-          </p>
-          <p>
-            <strong>Total Segments:</strong> 
-            <span>{state.timeline.segments.length}</span>
-          </p>
-        </div>
-
-        {state.currentTrack && state.nextTrack && (
-          <button onClick={handleSetTransition} className="transition-button">
-            ⚡ Set Transition at 10s
-          </button>
-        )}
       </div>
     </div>
   );
