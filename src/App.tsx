@@ -66,6 +66,10 @@ function App() {
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
+  const removeFileExtension = (filename: string) => {
+    return filename.replace(/\.[^/.]+$/, '');
+  };
+
   return (
     <div className="app">
       <div className="content">
@@ -77,17 +81,7 @@ function App() {
                 const source = state.sources[segment.sourceId];
                 return (
                   <div key={segment.id} className="segment">
-                    <strong>🎵 {source?.name}</strong>
-                    <div className="segment-details">
-                      <div className="detail-item">
-                        <div className="label">Track Range:</div>
-                        <div>{formatTime(segment.segmentStart)} - {formatTime(segment.segmentEnd)}</div>
-                      </div>
-                      <div className="detail-item">
-                        <div className="label">Timeline Position:</div>
-                        <div>{formatTime(segment.timelineStart)}</div>
-                      </div>
-                    </div>
+                    <strong>🎵 {source ? removeFileExtension(source.name) : 'Unknown Track'}</strong>
                   </div>
                 );
               })
@@ -97,6 +91,32 @@ function App() {
               </div>
             )}
           </div>
+
+          {state.timeline.segments.length > 0 && (
+            <div className="timeline-details">
+              <h3>📋 Segment Details</h3>
+              {state.timeline.segments.map(segment => {
+                const source = state.sources[segment.sourceId];
+                return (
+                  <div key={`details-${segment.id}`} className="segment-detail-card">
+                    <div className="detail-header">
+                      <strong>{source ? removeFileExtension(source.name) : 'Unknown Track'}</strong>
+                    </div>
+                    <div className="detail-content">
+                      <div className="detail-item">
+                        <div className="label">Track Range:</div>
+                        <div className="value">{formatTime(segment.segmentStart)} - {formatTime(segment.segmentEnd)}</div>
+                      </div>
+                      <div className="detail-item">
+                        <div className="label">Timeline Position:</div>
+                        <div className="value">{formatTime(segment.timelineStart)}</div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
 
           <div className="upload-section">
             <input
@@ -163,11 +183,11 @@ function App() {
             <h3>📊 Timeline Status</h3>
             <p>
               <strong>Current Track:</strong> 
-              <span>{state.currentTrack ? state.sources[state.currentTrack]?.name : 'None'}</span>
+              <span>{state.currentTrack ? removeFileExtension(state.sources[state.currentTrack]?.name || 'Unknown') : 'None'}</span>
             </p>
             <p>
               <strong>Next Track:</strong> 
-              <span>{state.nextTrack ? state.sources[state.nextTrack]?.name : 'None'}</span>
+              <span>{state.nextTrack ? removeFileExtension(state.sources[state.nextTrack]?.name || 'Unknown') : 'None'}</span>
             </p>
             <p>
               <strong>Timeline Duration:</strong> 
