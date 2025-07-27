@@ -75,17 +75,34 @@ function App() {
       <div className="content">
         <div className="main-content">
           <div className="timeline-preview">
-            <h3>Timeline Segments</h3>
-            {state.timeline.segments.length > 0 ? (
-              state.timeline.segments.map(segment => {
+            <div className="timeline-header">
+              <h3>Timeline Segments</h3>
+              <div className="add-track-button">
+                <input
+                  type="file"
+                  accept="audio/*"
+                  onChange={handleFileUpload}
+                  id="audio-upload"
+                />
+                <label htmlFor="audio-upload" className="add-track-label">
+                  <span className="upload-icon">📁</span>
+                  <span className="upload-text">Add Track</span>
+                </label>
+              </div>
+            </div>
+            
+            <div className="segments-container">
+              {state.timeline.segments.map(segment => {
                 const source = state.sources[segment.sourceId];
                 return (
                   <div key={segment.id} className="segment">
                     <strong>🎵 {source ? removeFileExtension(source.name) : 'Unknown Track'}</strong>
                   </div>
                 );
-              })
-            ) : (
+              })}
+            </div>
+            
+            {state.timeline.segments.length === 0 && (
               <div className="no-segments">
                 No segments yet. Upload audio files to see timeline segments.
               </div>
@@ -99,41 +116,22 @@ function App() {
                 const source = state.sources[segment.sourceId];
                 return (
                   <div key={`details-${segment.id}`} className="segment-detail-card">
-                    <div className="detail-header">
+                    <div className="detail-content-inline">
                       <strong>{source ? removeFileExtension(source.name) : 'Unknown Track'}</strong>
-                    </div>
-                    <div className="detail-content">
-                      <div className="detail-item">
-                        <div className="label">Track Range:</div>
-                        <div className="value">{formatTime(segment.segmentStart)} - {formatTime(segment.segmentEnd)}</div>
-                      </div>
-                      <div className="detail-item">
-                        <div className="label">Timeline Position:</div>
-                        <div className="value">{formatTime(segment.timelineStart)}</div>
-                      </div>
+                      <span className="detail-separator">•</span>
+                      <span className="detail-text">
+                        Track: {formatTime(segment.segmentStart)} - {formatTime(segment.segmentEnd)}
+                      </span>
+                      <span className="detail-separator">•</span>
+                      <span className="detail-text">
+                        Timeline: {formatTime(segment.timelineStart)}
+                      </span>
                     </div>
                   </div>
                 );
               })}
             </div>
           )}
-
-          <div className="upload-section">
-            <input
-              type="file"
-              accept="audio/*"
-              onChange={handleFileUpload}
-              id="audio-upload"
-            />
-            <label htmlFor="audio-upload" className="upload-button">
-              📁 Upload Audio File
-            </label>
-            <p style={{ marginTop: '16px', color: '#666' }}>
-              {!state.currentTrack ? 'Upload your first track to get started' : 
-               !state.nextTrack ? 'Upload a second track to create transitions' :
-               'Ready to set transitions!'}
-            </p>
-          </div>
 
           {state.currentTrack && state.nextTrack && (
             <div className="transition-section">
