@@ -48,19 +48,6 @@ body {
   flex-direction: column;
   overflow: hidden;
 
-  h1 {
-    text-align: center;
-    margin-bottom: calc(var(--spacing-unit) * 2);
-    background: var(--gradient-primary);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    font-size: clamp(2rem, 5vw, 3rem);
-    font-weight: 600;
-    letter-spacing: -0.025em;
-    flex-shrink: 0;
-  }
-
   .content {
     display: grid;
     grid-template-columns: 1fr 350px;
@@ -260,6 +247,151 @@ body {
     }
   }
 
+  // Transition section
+  .transition-section {
+    background: var(--gradient-surface);
+    padding: calc(var(--spacing-unit) * 3);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border-color);
+    flex-shrink: 0;
+
+    h3 {
+      margin-bottom: calc(var(--spacing-unit) * 3);
+      color: var(--text-color);
+      font-size: 1.4rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: calc(var(--spacing-unit));
+    }
+
+    .transition-options {
+      display: flex;
+      flex-direction: column;
+      gap: calc(var(--spacing-unit) * 3);
+    }
+
+    .transition-group {
+      h4 {
+        color: var(--text-color);
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: calc(var(--spacing-unit) * 1.5);
+        padding-bottom: calc(var(--spacing-unit) * 0.5);
+        border-bottom: 2px solid var(--border-color);
+      }
+
+      .custom-transition {
+        .transition-slider {
+          width: 100%;
+          height: 8px;
+          border-radius: 4px;
+          background: var(--surface-color);
+          outline: none;
+          border: 1px solid var(--border-color);
+          cursor: pointer;
+          margin-bottom: calc(var(--spacing-unit));
+
+          &::-webkit-slider-thumb {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--gradient-primary);
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+            transition: all 0.3s ease;
+
+            &:hover {
+              transform: scale(1.2);
+              box-shadow: 0 4px 12px rgba(99, 102, 241, 0.6);
+            }
+          }
+
+          &::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--gradient-primary);
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+          }
+        }
+
+        .slider-labels {
+          display: flex;
+          justify-content: space-between;
+          font-size: 0.85rem;
+          color: var(--text-secondary);
+          font-family: 'JetBrains Mono', 'SF Mono', Monaco, 'Cascadia Code', monospace;
+        }
+
+        .transition-controls {
+          margin-top: calc(var(--spacing-unit) * 2);
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: calc(var(--spacing-unit) * 2);
+
+          .current-time {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-family: 'JetBrains Mono', 'SF Mono', Monaco, 'Cascadia Code', monospace;
+
+            strong {
+              color: var(--text-color);
+              background: rgba(99, 102, 241, 0.1);
+              padding: calc(var(--spacing-unit) * 0.5) calc(var(--spacing-unit));
+              border-radius: calc(var(--border-radius) / 3);
+              border: 1px solid rgba(99, 102, 241, 0.2);
+            }
+          }
+
+          .set-transition-button {
+            background: var(--gradient-primary);
+            color: white;
+            padding: calc(var(--spacing-unit) * 1.5) calc(var(--spacing-unit) * 3);
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            white-space: nowrap;
+
+            &::before {
+              content: '';
+              position: absolute;
+              top: 0;
+              left: -100%;
+              width: 100%;
+              height: 100%;
+              background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+              transition: left 0.5s ease;
+            }
+
+            &:hover {
+              transform: translateY(-2px) scale(1.02);
+              box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+
+              &::before {
+                left: 100%;
+              }
+            }
+
+            &:active {
+              transform: translateY(-1px) scale(1.01);
+            }
+          }
+        }
+      }
+    }
+  }
+
   // Status section - make it sticky in sidebar
   .status {
     background: var(--gradient-surface);
@@ -377,11 +509,6 @@ body {
     padding: calc(var(--spacing-unit) * 1.5);
     height: 100vh;
 
-    h1 {
-      font-size: clamp(1.5rem, 4vw, 2rem);
-      margin-bottom: calc(var(--spacing-unit) * 1.5);
-    }
-
     .content {
       grid-template-columns: 1fr;
       grid-template-rows: auto 1fr;
@@ -426,6 +553,24 @@ body {
 
     .status {
       padding: calc(var(--spacing-unit) * 2);
+    }
+
+    .transition-section {
+      padding: calc(var(--spacing-unit) * 2);
+
+      .transition-controls {
+        flex-direction: column;
+        align-items: stretch;
+        gap: calc(var(--spacing-unit) * 1.5);
+
+        .current-time {
+          text-align: center;
+        }
+
+        .set-transition-button {
+          width: 100%;
+        }
+      }
     }
 
     .transition-button {

@@ -1,7 +1,9 @@
+import { useState } from 'react';
 import { useAudio } from './core/AudioContext';
 
 function App() {
   const { state, dispatch, audioEngine } = useAudio();
+  const [pendingTransitionPoint, setPendingTransitionPoint] = useState(0);
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -49,11 +51,10 @@ function App() {
   };
 
   const handleSetTransition = () => {
-    if (state.currentTrack && state.nextTrack) {
-      // For demo, set transition at 10 seconds (10000ms)
+    if (state.currentTrack && state.nextTrack && pendingTransitionPoint !== undefined) {
       dispatch({ 
         type: 'SET_TRANSITION', 
-        payload: { transitionPoint: 10000 } 
+        payload: { transitionPoint: pendingTransitionPoint } 
       });
     }
   };
@@ -67,8 +68,6 @@ function App() {
 
   return (
     <div className="app">
-      <h1>Auto Mixer</h1>
-      
       <div className="content">
         <div className="main-content">
           <div className="timeline-preview">
@@ -117,9 +116,45 @@ function App() {
           </div>
 
           {state.currentTrack && state.nextTrack && (
-            <button onClick={handleSetTransition} className="transition-button">
-              ⚡ Set Transition at 10s
-            </button>
+            <div className="transition-section">
+              <h3>⚡ Transition Settings</h3>
+              <div className="transition-options">
+                <div className="transition-group">
+                  <h4>Custom Transition</h4>
+                  <div className="custom-transition">
+                    <input
+                      type="range"
+                      min="0"
+                      max={state.currentTrack ? state.sources[state.currentTrack]?.duration : 100000}
+                      step="1000"
+                      value={pendingTransitionPoint}
+                      className="transition-slider"
+                      onChange={(e) => {
+                        const value = parseInt(e.target.value);
+                        setPendingTransitionPoint(value);
+                      }}
+                    />
+                    <div className="slider-labels">
+                      <span>0:00</span>
+                      <span>
+                        {state.currentTrack ? formatTime(state.sources[state.currentTrack]?.duration || 0) : '0:00'}
+                      </span>
+                    </div>
+                    <div className="transition-controls">
+                      <div className="current-time">
+                        Transition at: <strong>{formatTime(pendingTransitionPoint)}</strong>
+                      </div>
+                      <button 
+                        onClick={handleSetTransition}
+                        className="set-transition-button"
+                      >
+                        ⚡ Set Transition
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           )}
         </div>
 
