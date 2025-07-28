@@ -6,7 +6,12 @@ export function createInitialState(): AppState {
     sources: {},
     timeline: {
       segments: [],
-      duration: 0
+      duration: 0,
+      isPlaying: false,
+      currentTime: 0,
+      volume: 0.8,
+      isMuted: false,
+      playbackRate: 1.0
     },
     currentTrack: null,
     nextTrack: null
@@ -41,6 +46,7 @@ export function reducer(state: AppState, action: ActionType): AppState {
         ...state,
         currentTrack: action.payload.sourceId,
         timeline: {
+          ...state.timeline,
           segments: [segment],
           duration: source.duration
         }
@@ -85,6 +91,7 @@ export function reducer(state: AppState, action: ActionType): AppState {
       return {
         ...state,
         timeline: {
+          ...state.timeline,
           segments: newSegments,
           duration: newDuration
         },
@@ -92,6 +99,70 @@ export function reducer(state: AppState, action: ActionType): AppState {
         nextTrack: null
       };
     }
+
+    case 'PLAY_PAUSE':
+      return {
+        ...state,
+        timeline: {
+          ...state.timeline,
+          isPlaying: !state.timeline.isPlaying
+        }
+      };
+
+    case 'UPDATE_PLAYBACK_TIME':
+      return {
+        ...state,
+        timeline: {
+          ...state.timeline,
+          currentTime: action.payload.currentTime
+        }
+      };
+
+    case 'STOP_PLAYBACK':
+      return {
+        ...state,
+        timeline: {
+          ...state.timeline,
+          isPlaying: false,
+          currentTime: 0
+        }
+      };
+
+    case 'SEEK_TO_TIME':
+      return {
+        ...state,
+        timeline: {
+          ...state.timeline,
+          currentTime: Math.max(0, Math.min(action.payload.time, state.timeline.duration))
+        }
+      };
+
+    case 'SET_VOLUME':
+      return {
+        ...state,
+        timeline: {
+          ...state.timeline,
+          volume: Math.max(0, Math.min(1, action.payload.volume))
+        }
+      };
+
+    case 'TOGGLE_MUTE':
+      return {
+        ...state,
+        timeline: {
+          ...state.timeline,
+          isMuted: !state.timeline.isMuted
+        }
+      };
+
+    case 'SET_PLAYBACK_RATE':
+      return {
+        ...state,
+        timeline: {
+          ...state.timeline,
+          playbackRate: Math.max(0.25, Math.min(2.0, action.payload.rate))
+        }
+      };
 
     default:
       return state;
