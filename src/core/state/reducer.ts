@@ -1,4 +1,5 @@
 import type { AppState, ActionType } from '../../types';
+import { createSegment, calculateTimelineDuration, updateSegmentEnd } from '../timeline/TimelineUtils';
 
 export function createInitialState(): AppState {
   return {
@@ -28,13 +29,13 @@ export function reducer(state: AppState, action: ActionType): AppState {
       const source = state.sources[action.payload.sourceId];
       if (!source) return state;
 
-      const segment = {
-        id: `segment-${action.payload.sourceId}-1`,
-        sourceId: action.payload.sourceId,
-        segmentStart: 0,
-        segmentEnd: source.duration,
-        timelineStart: 0
-      };
+      const segment = createSegment(
+        `segment-${action.payload.sourceId}-1`,
+        source,
+        0,
+        source.duration,
+        0
+      );
 
       return {
         ...state,
@@ -64,25 +65,22 @@ export function reducer(state: AppState, action: ActionType): AppState {
       // Update current segment to end at transition point
       const updatedSegments = state.timeline.segments.map(segment => {
         if (segment.sourceId === state.currentTrack) {
-          return {
-            ...segment,
-            segmentEnd: action.payload.transitionPoint
-          };
+          return updateSegmentEnd(segment, action.payload.transitionPoint);
         }
         return segment;
       });
 
-      // Create next segment
-      const nextSegment = {
-        id: `segment-${state.nextTrack}-1`,
-        sourceId: state.nextTrack,
-        segmentStart: 0,
-        segmentEnd: nextSource.duration,
-        timelineStart: action.payload.transitionPoint
-      };
+      // Create next segment starting at transition point
+      const nextSegment = createSegment(
+        `segment-${state.nextTrack}-1`,
+        nextSource,
+        0,
+        nextSource.duration,
+        action.payload.transitionPoint
+      );
 
       const newSegments = [...updatedSegments, nextSegment];
-      const newDuration = action.payload.transitionPoint + nextSource.duration;
+      const newDuration = calculateTimelineDuration(newSegments);
 
       return {
         ...state,

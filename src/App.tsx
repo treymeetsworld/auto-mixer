@@ -92,11 +92,11 @@ function App() {
             </div>
             
             <div className="segments-container">
-              {state.timeline.segments.map(segment => {
+              {state.timeline.segments.map((segment, index) => {
                 const source = state.sources[segment.sourceId];
                 return (
                   <div key={segment.id} className="segment">
-                    <strong>🎵 {source ? removeFileExtension(source.name) : 'Unknown Track'}</strong>
+                    <strong>#{index + 1} {source ? removeFileExtension(source.name) : 'Unknown Track'}</strong>
                   </div>
                 );
               })}
@@ -112,19 +112,19 @@ function App() {
           {state.timeline.segments.length > 0 && (
             <div className="timeline-details">
               <h3>📋 Segment Details</h3>
-              {state.timeline.segments.map(segment => {
+              {state.timeline.segments.map((segment, index) => {
                 const source = state.sources[segment.sourceId];
                 return (
                   <div key={`details-${segment.id}`} className="segment-detail-card">
                     <div className="detail-content-inline">
-                      <strong>{source ? removeFileExtension(source.name) : 'Unknown Track'}</strong>
+                      <strong>#{index + 1} {source ? removeFileExtension(source.name) : 'Unknown Track'}</strong>
                       <span className="detail-separator">•</span>
                       <span className="detail-text">
-                        Track: {formatTime(segment.segmentStart)} - {formatTime(segment.segmentEnd)}
+                        Source: {formatTime(segment.segmentStart)} - {formatTime(segment.segmentEnd)}
                       </span>
                       <span className="detail-separator">•</span>
                       <span className="detail-text">
-                        Timeline: {formatTime(segment.timelineStart)}
+                        Duration: {formatTime(segment.duration)}
                       </span>
                     </div>
                   </div>

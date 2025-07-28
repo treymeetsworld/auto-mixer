@@ -11,9 +11,11 @@ export interface AudioSource {
 export interface Segment {
   id: string;
   sourceId: string;
-  segmentStart: number; // Where to start in source track (ms)
-  segmentEnd: number;   // Where to end in source track (ms)
-  timelineStart: number; // When this segment starts in timeline (ms)
+  segmentStart: number;   // Where to start in source track (ms)
+  segmentEnd: number;     // Where to end in source track (ms)
+  timelineStart: number;  // When this segment starts in timeline (ms)
+  timelineEnd: number;    // When this segment ends in timeline (ms)
+  duration: number;       // Duration of this segment (segmentEnd - segmentStart)
 }
 
 export interface Timeline {
