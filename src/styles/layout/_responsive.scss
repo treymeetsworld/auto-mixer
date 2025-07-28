@@ -1,0 +1,127 @@
+// =============================================================================
+// RESPONSIVE DESIGN
+// =============================================================================
+
+.app {
+  // Tablet breakpoint
+  @include tablet {
+    .content {
+      grid-template-columns: 1fr 300px;
+    }
+  }
+
+  // Mobile breakpoint
+  @include mobile {
+    padding: calc(var(--spacing-unit) * 1.5);
+    height: 100vh;
+
+    .content {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto 1fr;
+      gap: calc(var(--spacing-unit) * 2);
+    }
+
+    .sidebar {
+      order: -1;
+      overflow-y: visible;
+      height: auto;
+    }
+
+    .main-content {
+      overflow-y: auto;
+    }
+
+    .timeline-preview {
+      .timeline-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: calc(var(--spacing-unit) * 1.5);
+
+        h3 {
+          text-align: center;
+        }
+
+        .add-track-button {
+          align-self: center;
+        }
+      }
+
+      .segments-container {
+        gap: calc(var(--spacing-unit));
+      }
+      
+      .segment {
+        min-width: 100px;
+        max-width: 150px;
+        
+        strong {
+          font-size: 0.8rem;
+        }
+      }
+    }
+
+    .timeline-details {
+      max-height: 300px;
+      
+      .segment-detail-card .detail-content-inline {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: calc(var(--spacing-unit));
+
+        .detail-separator {
+          display: none;
+        }
+      }
+    }
+
+    .status p {
+      flex-direction: column;
+      gap: calc(var(--spacing-unit) * 0.5);
+      text-align: center;
+
+      strong {
+        min-width: auto;
+      }
+    }
+  }
+
+  // Small mobile breakpoint
+  @include small-mobile {
+    padding: calc(var(--spacing-unit));
+
+    .upload-section {
+      padding: calc(var(--spacing-unit) * 2);
+    }
+
+    .timeline-preview {
+      padding: calc(var(--spacing-unit) * 2);
+    }
+
+    .status {
+      padding: calc(var(--spacing-unit) * 2);
+    }
+
+    .transition-section {
+      padding: calc(var(--spacing-unit) * 2);
+
+      .transition-controls {
+        flex-direction: column;
+        align-items: stretch;
+        gap: calc(var(--spacing-unit) * 1.5);
+
+        .current-time {
+          text-align: center;
+        }
+
+        .set-transition-button {
+          width: 100%;
+        }
+      }
+    }
+
+    .transition-button {
+      padding: calc(var(--spacing-unit) * 2) calc(var(--spacing-unit) * 3);
+      font-size: 1rem;
+    }
+  }
+}

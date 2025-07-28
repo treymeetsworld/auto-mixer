@@ -1,0 +1,51 @@
+// =============================================================================
+// TIMELINE PREVIEW COMPONENT
+// =============================================================================
+
+.timeline-preview {
+  @include card-base;
+  flex-shrink: 0;
+  overflow: hidden;
+  min-height: 0;
+
+  .timeline-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: calc(var(--spacing-unit) * 2);
+    gap: calc(var(--spacing-unit) * 2);
+
+    h3 {
+      margin: 0;
+      color: var(--text-color);
+      font-size: 1.4rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: calc(var(--spacing-unit));
+
+      &::before {
+        content: "🎵";
+        font-size: 1.5em;
+        filter: drop-shadow(0 0 8px rgba(99, 102, 241, 0.5));
+      }
+    }
+  }
+
+  .segments-container {
+    display: flex;
+    flex-direction: row;
+    gap: calc(var(--spacing-unit) * 1.5);
+    padding-bottom: calc(var(--spacing-unit));
+    overflow-x: auto;
+    @include custom-scrollbar(6px, horizontal);
+  }
+
+  .no-segments {
+    text-align: center;
+    color: var(--text-muted);
+    padding: calc(var(--spacing-unit) * 4);
+    font-style: italic;
+    font-size: 1.1rem;
+  }
+}

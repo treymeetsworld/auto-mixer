@@ -1,0 +1,74 @@
+// =============================================================================
+// TIMELINE DETAILS COMPONENT
+// =============================================================================
+
+.timeline-details {
+  @include card-base;
+  flex: 1;
+  overflow-y: auto;
+  @include custom-scrollbar;
+  min-height: 200px;
+
+  h3 {
+    margin-bottom: calc(var(--spacing-unit) * 3);
+    color: var(--text-color);
+    font-size: 1.4rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: calc(var(--spacing-unit));
+    position: sticky;
+    top: 0;
+    background: var(--gradient-surface);
+    z-index: 1;
+    padding-bottom: calc(var(--spacing-unit));
+    flex-shrink: 0;
+  }
+
+  .segment-detail-card {
+    background: var(--surface-color);
+    padding: calc(var(--spacing-unit) * 2);
+    border-radius: var(--border-radius);
+    margin-bottom: calc(var(--spacing-unit) * 1.5);
+    border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+
+    @include hover-lift(1, -2px);
+
+    &:hover {
+      border-color: var(--border-light);
+    }
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    .detail-content-inline {
+      display: flex;
+      align-items: center;
+      gap: calc(var(--spacing-unit) * 1.5);
+      flex-wrap: wrap;
+
+      strong {
+        color: var(--text-color);
+        font-size: 1rem;
+        font-weight: 600;
+      }
+
+      .detail-separator {
+        color: var(--text-muted);
+        font-weight: bold;
+      }
+
+      .detail-text {
+        color: var(--text-secondary);
+        @extend .code-font;
+        font-size: 0.85rem;
+        background: rgba(99, 102, 241, 0.1);
+        padding: calc(var(--spacing-unit) * 0.5) calc(var(--spacing-unit));
+        border-radius: calc(var(--border-radius) / 3);
+        border: 1px solid rgba(99, 102, 241, 0.2);
+      }
+    }
+  }
+}

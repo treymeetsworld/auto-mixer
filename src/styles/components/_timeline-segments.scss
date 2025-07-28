@@ -1,0 +1,42 @@
+// =============================================================================
+// TIMELINE SEGMENTS COMPONENT
+// =============================================================================
+
+.segment {
+  background: var(--surface-color);
+  padding: calc(var(--spacing-unit) * 1.5) calc(var(--spacing-unit) * 2);
+  border-radius: var(--border-radius);
+  border: 1px solid var(--border-color);
+  position: relative;
+  transition: all 0.3s ease;
+  overflow: hidden;
+  flex-shrink: 0;
+  min-width: 120px;
+  max-width: 200px;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: var(--success-color);
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+  }
+
+  @include hover-lift(1, -3px);
+
+  &:hover {
+    border-color: var(--border-light);
+  }
+
+  strong {
+    display: block;
+    color: var(--text-color);
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-align: center;
+    @include text-truncate;
+  }
+}

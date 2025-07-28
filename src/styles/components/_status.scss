@@ -1,0 +1,63 @@
+// =============================================================================
+// STATUS SECTION COMPONENT
+// =============================================================================
+
+.status {
+  @include card-base;
+  position: relative;
+  flex-shrink: 0;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: var(--gradient-primary);
+    border-radius: 0 var(--border-radius) var(--border-radius) 0;
+  }
+
+  h3 {
+    margin-bottom: calc(var(--spacing-unit) * 2);
+    color: var(--text-color);
+    font-size: 1.25rem;
+    font-weight: 600;
+  }
+
+  p {
+    margin-bottom: calc(var(--spacing-unit) * 1.5);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: calc(var(--spacing-unit) * 1.5);
+    border-radius: calc(var(--border-radius) / 2);
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border-color);
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: var(--border-light);
+    }
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    strong {
+      color: var(--text-color);
+      min-width: 140px;
+      font-weight: 500;
+    }
+
+    span {
+      color: var(--text-secondary);
+      @extend .code-font;
+      background: rgba(99, 102, 241, 0.1);
+      padding: calc(var(--spacing-unit) * 0.5) calc(var(--spacing-unit));
+      border-radius: calc(var(--border-radius) / 3);
+      border: 1px solid rgba(99, 102, 241, 0.2);
+    }
+  }
+}

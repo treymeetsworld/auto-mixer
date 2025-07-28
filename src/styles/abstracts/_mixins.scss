@@ -1,0 +1,117 @@
+// =============================================================================
+// MIXINS
+// =============================================================================
+
+// Flexbox center mixin
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+// Button base styles
+@mixin button-base {
+  border: none;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+// Card base styles
+@mixin card-base {
+  background: var(--gradient-surface);
+  padding: calc(var(--spacing-unit) * 3);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border-color);
+}
+
+// Scrollbar styles
+@mixin custom-scrollbar($width: 6px, $direction: vertical) {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-color) transparent;
+
+  @if $direction == vertical {
+    &::-webkit-scrollbar {
+      width: $width;
+    }
+  } @else {
+    &::-webkit-scrollbar {
+      height: $width;
+    }
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: calc(#{$width} / 2);
+
+    &:hover {
+      background: var(--border-light);
+    }
+  }
+}
+
+// Hover lift effect
+@mixin hover-lift($scale: 1.02, $y: -2px) {
+  &:hover {
+    transform: translateY(#{$y}) scale(#{$scale});
+    box-shadow: var(--shadow-lg);
+  }
+
+  &:active {
+    transform: translateY(calc(#{$y} / 2)) scale(calc(#{$scale} - 0.01));
+  }
+}
+
+// Shimmer effect for buttons
+@mixin shimmer-effect {
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s ease;
+  }
+
+  &:hover::before {
+    left: 100%;
+  }
+}
+
+// Text truncation
+@mixin text-truncate {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// Responsive breakpoints
+@mixin mobile {
+  @media (max-width: 768px) {
+    @content;
+  }
+}
+
+@mixin tablet {
+  @media (max-width: 1024px) {
+    @content;
+  }
+}
+
+@mixin small-mobile {
+  @media (max-width: 480px) {
+    @content;
+  }
+}

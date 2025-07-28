@@ -1,0 +1,55 @@
+// =============================================================================
+// ADD TRACK BUTTON COMPONENT
+// =============================================================================
+
+.add-track-button {
+  background: var(--gradient-surface);
+  border: 2px solid var(--primary-color);
+  border-radius: var(--border-radius);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  padding: calc(var(--spacing-unit) * 1.5) calc(var(--spacing-unit) * 2);
+
+  &:hover {
+    background: var(--surface-hover);
+    @include hover-lift;
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(45deg, transparent 30%, rgba(99, 102, 241, 0.1) 50%, transparent 70%);
+    }
+  }
+
+  input[type="file"] {
+    display: none;
+  }
+
+  .add-track-label {
+    display: flex;
+    align-items: center;
+    gap: calc(var(--spacing-unit));
+    cursor: pointer;
+    text-decoration: none;
+    color: var(--text-color);
+    position: relative;
+    z-index: 1;
+
+    .upload-icon {
+      font-size: 1.2rem;
+      filter: drop-shadow(0 0 4px rgba(99, 102, 241, 0.3));
+    }
+
+    .upload-text {
+      font-size: 0.9rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+  }
+}

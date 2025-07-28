@@ -1,0 +1,118 @@
+// =============================================================================
+// TRANSITION SECTION COMPONENT
+// =============================================================================
+
+.transition-section {
+  @include card-base;
+  flex-shrink: 0;
+
+  h3 {
+    margin-bottom: calc(var(--spacing-unit) * 3);
+    color: var(--text-color);
+    font-size: 1.4rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: calc(var(--spacing-unit));
+  }
+
+  .transition-options {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--spacing-unit) * 3);
+  }
+
+  .transition-group {
+    h4 {
+      color: var(--text-color);
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: calc(var(--spacing-unit) * 1.5);
+      padding-bottom: calc(var(--spacing-unit) * 0.5);
+      border-bottom: 2px solid var(--border-color);
+    }
+
+    .custom-transition {
+      .transition-slider {
+        width: 100%;
+        height: 8px;
+        border-radius: 4px;
+        background: var(--surface-color);
+        outline: none;
+        border: 1px solid var(--border-color);
+        cursor: pointer;
+        margin-bottom: calc(var(--spacing-unit));
+
+        &::-webkit-slider-thumb {
+          appearance: none;
+          width: 20px;
+          height: 20px;
+          border-radius: 50%;
+          background: var(--gradient-primary);
+          cursor: pointer;
+          box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+          transition: all 0.3s ease;
+
+          &:hover {
+            transform: scale(1.2);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.6);
+          }
+        }
+
+        &::-moz-range-thumb {
+          width: 20px;
+          height: 20px;
+          border-radius: 50%;
+          background: var(--gradient-primary);
+          cursor: pointer;
+          border: none;
+          box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+        }
+      }
+
+      .slider-labels {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        @extend .code-font;
+      }
+
+      .transition-controls {
+        margin-top: calc(var(--spacing-unit) * 2);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: calc(var(--spacing-unit) * 2);
+
+        .current-time {
+          color: var(--text-secondary);
+          font-size: 0.9rem;
+          @extend .code-font;
+
+          strong {
+            color: var(--text-color);
+            background: rgba(99, 102, 241, 0.1);
+            padding: calc(var(--spacing-unit) * 0.5) calc(var(--spacing-unit));
+            border-radius: calc(var(--border-radius) / 3);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+          }
+        }
+
+        .set-transition-button {
+          @include button-base;
+          background: var(--gradient-primary);
+          color: white;
+          padding: calc(var(--spacing-unit) * 1.5) calc(var(--spacing-unit) * 3);
+          font-size: 0.95rem;
+          @include shimmer-effect;
+          @include hover-lift;
+
+          &:hover {
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+          }
+        }
+      }
+    }
+  }
+}
