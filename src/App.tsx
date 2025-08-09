@@ -19,20 +19,55 @@ function App() {
   const [pendingTransitionPoint, setPendingTransitionPoint] = useState(0);
   const animationFrameRef = useRef<number | undefined>(undefined);
 
-  // Update playback time
+  // Update playback time with transition detection
   useEffect(() => {
     if (state.timeline.isPlaying) {
       const updateTime = () => {
         const currentTime = audioEngine.getCurrentTime();
+        
+        // Find current segment based on timeline position
+        const currentSegment = getCurrentSegment();
+        
+        // Calculate actual timeline position
+        let timelinePosition = state.timeline.currentTime;
+        
+        if (currentSegment) {
+          // Calculate timeline position based on current segment and audio position
+          const segmentOffset = Math.min(currentTime, currentSegment.segmentEnd - currentSegment.segmentStart);
+          timelinePosition = currentSegment.timelineStart + segmentOffset;
+        }
+        
         dispatch({ 
           type: 'UPDATE_PLAYBACK_TIME', 
-          payload: { currentTime } 
+          payload: { currentTime: timelinePosition } 
         });
         
         // Stop at end of timeline
-        if (currentTime >= state.timeline.duration) {
+        if (timelinePosition >= state.timeline.duration) {
           dispatch({ type: 'STOP_PLAYBACK' });
           return;
+        }
+        
+        // Check if current audio has reached the end of its segment
+        if (currentSegment && currentTime >= (currentSegment.segmentEnd - currentSegment.segmentStart)) {
+          // Find the next segment
+          const currentIndex = state.timeline.segments.findIndex(seg => seg.id === currentSegment.id);
+          const nextSegment = state.timeline.segments[currentIndex + 1];
+          
+          if (nextSegment) {
+            const nextSource = state.sources[nextSegment.sourceId];
+            if (nextSource?.buffer) {
+              const effectiveVolume = state.timeline.isMuted ? 0 : state.timeline.volume;
+              
+              // Transition to next segment
+              audioEngine.play(
+                nextSource.buffer, 
+                nextSegment.segmentStart,
+                effectiveVolume,
+                state.timeline.playbackRate
+              ).catch(error => console.error('Transition error:', error));
+            }
+          }
         }
         
         animationFrameRef.current = requestAnimationFrame(updateTime);
