@@ -18,6 +18,7 @@ function App() {
   const { state, dispatch, audioEngine } = useAudio();
   const [pendingTransitionPoint, setPendingTransitionPoint] = useState(0);
   const animationFrameRef = useRef<number | undefined>(undefined);
+  const currentPlayingSegmentRef = useRef<any>(null);
 
   // Update playback time with transition detection
   useEffect(() => {
@@ -28,13 +29,35 @@ function App() {
         // Find current segment based on timeline position
         const currentSegment = getCurrentSegment();
         
+        // If we don't have a playing segment tracked, set it to the current segment
+        if (!currentPlayingSegmentRef.current && currentSegment) {
+          currentPlayingSegmentRef.current = currentSegment;
+        }
+        
+        // Use the tracked playing segment for audio time calculations
+        const playingSegment = currentPlayingSegmentRef.current || currentSegment;
+        
+        // Debug current state
+        if (playingSegment) {
+          console.log('Audio playback state:', {
+            audioCurrentTime: currentTime,
+            segmentStart: playingSegment.segmentStart,
+            segmentEnd: playingSegment.segmentEnd,
+            segmentDuration: playingSegment.segmentEnd - playingSegment.segmentStart,
+            timelineStart: playingSegment.timelineStart,
+            timelineEnd: playingSegment.timelineEnd,
+            segmentId: playingSegment.id,
+            shouldTransition: currentTime >= (playingSegment.segmentEnd - playingSegment.segmentStart)
+          });
+        }
+        
         // Calculate actual timeline position
         let timelinePosition = state.timeline.currentTime;
         
-        if (currentSegment) {
-          // Calculate timeline position based on current segment and audio position
-          const segmentOffset = Math.min(currentTime, currentSegment.segmentEnd - currentSegment.segmentStart);
-          timelinePosition = currentSegment.timelineStart + segmentOffset;
+        if (playingSegment) {
+          // Calculate timeline position based on current playing segment and audio position
+          const segmentOffset = Math.min(currentTime, playingSegment.segmentEnd - playingSegment.segmentStart);
+          timelinePosition = playingSegment.timelineStart + segmentOffset;
         }
         
         dispatch({ 
@@ -49,15 +72,26 @@ function App() {
         }
         
         // Check if current audio has reached the end of its segment
-        if (currentSegment && currentTime >= (currentSegment.segmentEnd - currentSegment.segmentStart)) {
+        if (playingSegment && currentTime >= (playingSegment.segmentEnd - playingSegment.segmentStart)) {
+          console.log('Segment transition triggered:', {
+            currentTime,
+            segmentDuration: playingSegment.segmentEnd - playingSegment.segmentStart,
+            segmentId: playingSegment.id
+          });
+          
           // Find the next segment
-          const currentIndex = state.timeline.segments.findIndex(seg => seg.id === currentSegment.id);
+          const currentIndex = state.timeline.segments.findIndex(seg => seg.id === playingSegment.id);
           const nextSegment = state.timeline.segments[currentIndex + 1];
           
           if (nextSegment) {
             const nextSource = state.sources[nextSegment.sourceId];
             if (nextSource?.buffer) {
               const effectiveVolume = state.timeline.isMuted ? 0 : state.timeline.volume;
+              
+              console.log('Transitioning to next segment:', nextSegment.id);
+              
+              // Update the tracked playing segment BEFORE starting playback
+              currentPlayingSegmentRef.current = nextSegment;
               
               // Transition to next segment
               audioEngine.play(
@@ -67,6 +101,10 @@ function App() {
                 state.timeline.playbackRate
               ).catch(error => console.error('Transition error:', error));
             }
+          } else {
+            console.log('No next segment found, stopping playback');
+            currentPlayingSegmentRef.current = null;
+            dispatch({ type: 'STOP_PLAYBACK' });
           }
         }
         
@@ -95,6 +133,10 @@ function App() {
         if (currentSegment && currentSegment.buffer) {
           const segmentOffset = state.timeline.currentTime - currentSegment.timelineStart;
           const effectiveVolume = state.timeline.isMuted ? 0 : state.timeline.volume;
+          
+          // Reset the tracked playing segment when starting fresh
+          currentPlayingSegmentRef.current = currentSegment;
+          
           await audioEngine.play(
             currentSegment.buffer, 
             currentSegment.segmentStart + segmentOffset,
@@ -113,6 +155,7 @@ function App() {
 
   const handleStop = () => {
     audioEngine.stop();
+    currentPlayingSegmentRef.current = null;
     dispatch({ type: 'STOP_PLAYBACK' });
   };
 
@@ -133,6 +176,9 @@ function App() {
         // Calculate the offset within the target segment
         const segmentOffset = time - targetSegment.timelineStart;
         const seekPosition = targetSegment.segmentStart + segmentOffset;
+        
+        // Update the tracked playing segment when seeking
+        currentPlayingSegmentRef.current = targetSegment;
         
         try {
           await audioEngine.seekTo(seekPosition, source.buffer, effectiveVolume, state.timeline.playbackRate);
