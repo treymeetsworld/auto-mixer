@@ -40,6 +40,7 @@ export type ActionType =
   | { type: 'SELECT_FIRST_TRACK'; payload: { sourceId: string } }
   | { type: 'SELECT_NEXT_TRACK'; payload: { sourceId: string } }
   | { type: 'SET_TRANSITION'; payload: { transitionPoint: number } }
+  | { type: 'ADD_SEGMENT_TO_TIMELINE'; payload: { segment: Segment } }
   | { type: 'PLAY_PAUSE' }
   | { type: 'UPDATE_PLAYBACK_TIME'; payload: { currentTime: number } }
   | { type: 'STOP_PLAYBACK' }

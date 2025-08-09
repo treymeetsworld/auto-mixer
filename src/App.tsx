@@ -160,6 +160,13 @@ function App() {
   };
 
   const handleSeek = async (time: number) => {
+    console.log('=== SEEK START ===', {
+      seekTime: time,
+      currentTimelineTime: state.timeline.currentTime,
+      currentPlayingSegment: currentPlayingSegmentRef.current?.id,
+      totalDuration: state.timeline.duration
+    });
+    
     // Update the timeline current time immediately for responsive UI
     dispatch({ type: 'SEEK_TO_TIME', payload: { time } });
     
@@ -169,6 +176,21 @@ function App() {
       time < seg.timelineEnd
     );
     
+    console.log('Seek target segment:', {
+      targetSegment: targetSegment ? {
+        id: targetSegment.id,
+        timelineStart: targetSegment.timelineStart,
+        timelineEnd: targetSegment.timelineEnd,
+        segmentStart: targetSegment.segmentStart,
+        segmentEnd: targetSegment.segmentEnd
+      } : null,
+      allSegments: state.timeline.segments.map(seg => ({
+        id: seg.id,
+        timelineStart: seg.timelineStart,
+        timelineEnd: seg.timelineEnd
+      }))
+    });
+    
     if (targetSegment) {
       const source = state.sources[targetSegment.sourceId];
       if (source?.buffer) {
@@ -177,15 +199,25 @@ function App() {
         const segmentOffset = time - targetSegment.timelineStart;
         const seekPosition = targetSegment.segmentStart + segmentOffset;
         
+        console.log('Seek calculation:', {
+          segmentOffset,
+          seekPosition,
+          segmentStart: targetSegment.segmentStart,
+          targetSegmentId: targetSegment.id
+        });
+        
         // Update the tracked playing segment when seeking
         currentPlayingSegmentRef.current = targetSegment;
         
         try {
           await audioEngine.seekTo(seekPosition, source.buffer, effectiveVolume, state.timeline.playbackRate);
+          console.log('=== SEEK COMPLETE ===');
         } catch (error) {
           console.error('Seek error:', error);
         }
       }
+    } else {
+      console.log('No target segment found for seek time:', time);
     }
   };
 
@@ -261,6 +293,35 @@ function App() {
         dispatch({ 
           type: 'SELECT_NEXT_TRACK', 
           payload: { sourceId: source.id } 
+        });
+      } else {
+        // If both current and next track exist, automatically add this track to timeline
+        // Find the end time of the last segment in the timeline
+        const lastSegment = state.timeline.segments[state.timeline.segments.length - 1];
+        const startTime = lastSegment ? lastSegment.timelineEnd : 0;
+        
+        // Create a new segment for this track
+        const newSegment = {
+          id: `segment-${source.id}-1`,
+          sourceId: source.id,
+          segmentStart: 0,
+          segmentEnd: source.duration,
+          timelineStart: startTime,
+          timelineEnd: startTime + source.duration,
+          duration: source.duration
+        };
+        
+        // Add the segment directly to the timeline
+        dispatch({
+          type: 'ADD_SEGMENT_TO_TIMELINE',
+          payload: { segment: newSegment }
+        });
+        
+        console.log('Added additional track to timeline:', {
+          trackName: source.name,
+          segmentId: newSegment.id,
+          timelineStart: newSegment.timelineStart,
+          timelineEnd: newSegment.timelineEnd
         });
       }
 

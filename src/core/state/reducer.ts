@@ -164,6 +164,20 @@ export function reducer(state: AppState, action: ActionType): AppState {
         }
       };
 
+    case 'ADD_SEGMENT_TO_TIMELINE': {
+      const newSegments = [...state.timeline.segments, action.payload.segment];
+      const newDuration = calculateTimelineDuration(newSegments);
+      
+      return {
+        ...state,
+        timeline: {
+          ...state.timeline,
+          segments: newSegments,
+          duration: newDuration
+        }
+      };
+    }
+
     default:
       return state;
   }
