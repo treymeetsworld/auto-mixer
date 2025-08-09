@@ -361,7 +361,6 @@ function App() {
                     duration={state.timeline.duration}
                     onSeek={handleSeek}
                     segments={state.timeline.segments}
-                    sources={state.sources}
                     height={80}
                     className="timeline-waveform"
                   />
