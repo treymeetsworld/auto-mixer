@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAudio } from './core/AudioContext';
+import { Waveform } from './components/Waveform';
 import { 
   Upload,
   Play,
@@ -10,8 +11,7 @@ import {
   Volume1,
   ListMusic,
   RotateCcw,
-  TrendingUp,
-  Clock
+  TrendingUp
 } from 'lucide-react';
 
 function App() {
@@ -355,16 +355,15 @@ function App() {
                   </div>
                 </div>
 
-                <div className="seek-control">
-                  <input
-                    type="range"
-                    min="0"
-                    max={state.timeline.duration}
-                    step="100"
-                    value={state.timeline.currentTime}
-                    className="seek-slider"
-                    onChange={(e) => handleSeek(parseInt(e.target.value))}
-                    title="Seek position"
+                <div className="seek-control waveform">
+                  <Waveform
+                    currentTime={state.timeline.currentTime}
+                    duration={state.timeline.duration}
+                    onSeek={handleSeek}
+                    segments={state.timeline.segments}
+                    sources={state.sources}
+                    height={80}
+                    className="timeline-waveform"
                   />
                 </div>
 
