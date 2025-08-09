@@ -151,7 +151,7 @@ export class AudioEngine {
     
     if (wasPlaying && buffer) {
       this.currentBuffer = buffer; // Store for potential reuse
-      await this.play(buffer, 0, volume, rate);
+      await this.play(buffer, timeMs, volume, rate);
     }
   }
 

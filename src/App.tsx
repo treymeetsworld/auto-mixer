@@ -82,13 +82,30 @@ function App() {
   };
 
   const handleSeek = async (time: number) => {
-    const currentSegment = getCurrentSegment();
-    const effectiveVolume = state.timeline.isMuted ? 0 : state.timeline.volume;
-    
-    if (currentSegment && currentSegment.buffer) {
-      await audioEngine.seekTo(time, currentSegment.buffer, effectiveVolume, state.timeline.playbackRate);
-    }
+    // Update the timeline current time immediately for responsive UI
     dispatch({ type: 'SEEK_TO_TIME', payload: { time } });
+    
+    // Find the segment that contains the target seek time
+    const targetSegment = state.timeline.segments.find(seg => 
+      time >= seg.timelineStart && 
+      time < seg.timelineEnd
+    );
+    
+    if (targetSegment) {
+      const source = state.sources[targetSegment.sourceId];
+      if (source?.buffer) {
+        const effectiveVolume = state.timeline.isMuted ? 0 : state.timeline.volume;
+        // Calculate the offset within the target segment
+        const segmentOffset = time - targetSegment.timelineStart;
+        const seekPosition = targetSegment.segmentStart + segmentOffset;
+        
+        try {
+          await audioEngine.seekTo(seekPosition, source.buffer, effectiveVolume, state.timeline.playbackRate);
+        } catch (error) {
+          console.error('Seek error:', error);
+        }
+      }
+    }
   };
 
   const handleVolumeChange = (volume: number) => {
