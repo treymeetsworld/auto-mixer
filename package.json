@@ -12,6 +12,7 @@
   "dependencies": {
     "@fortawesome/fontawesome-free": "^6.7.2",
     "@types/uuid": "^10.0.0",
+    "lucide-react": "^0.539.0",
     "music-tempo": "^1.0.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",

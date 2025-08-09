@@ -1,5 +1,18 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAudio } from './core/AudioContext';
+import { 
+  Upload,
+  Play,
+  Pause,
+  Square,
+  Volume2,
+  VolumeX,
+  Volume1,
+  ListMusic,
+  RotateCcw,
+  TrendingUp,
+  Clock
+} from 'lucide-react';
 
 function App() {
   const { state, dispatch, audioEngine } = useAudio();
@@ -186,15 +199,6 @@ function App() {
             <div className="timeline-header">
               <h3>Timeline Segments</h3>
               <div className="timeline-controls">
-                {state.timeline.segments.length > 0 && (
-                  <button 
-                    onClick={handlePlayPause}
-                    className="play-button"
-                    title={state.timeline.isPlaying ? "Pause" : "Play"}
-                  >
-                    {state.timeline.isPlaying ? "⏸️" : "▶️"}
-                  </button>
-                )}
                 <div className="add-track-button">
                   <input
                     type="file"
@@ -203,7 +207,7 @@ function App() {
                     id="audio-upload"
                   />
                   <label htmlFor="audio-upload" className="add-track-label">
-                    <span className="upload-icon">📁</span>
+                    <span className="upload-icon"><Upload size={18} /></span>
                     <span className="upload-text">Add Track</span>
                   </label>
                 </div>
@@ -235,7 +239,7 @@ function App() {
                     className="control-button play-pause"
                     title={state.timeline.isPlaying ? "Pause" : "Play"}
                   >
-                    {state.timeline.isPlaying ? "⏸️" : "▶️"}
+                    {state.timeline.isPlaying ? <Pause size={16} /> : <Play size={16} />}
                   </button>
                   
                   <button 
@@ -243,7 +247,7 @@ function App() {
                     className="control-button stop"
                     title="Stop"
                   >
-                    ⏹️
+                    <Square size={16} />
                   </button>
                   
                   <div className="time-display">
@@ -273,7 +277,7 @@ function App() {
                       className="control-button mute"
                       title={state.timeline.isMuted ? "Unmute" : "Mute"}
                     >
-                      {state.timeline.isMuted ? "🔇" : state.timeline.volume > 0.5 ? "🔊" : "🔉"}
+                      {state.timeline.isMuted ? <VolumeX size={16} /> : state.timeline.volume > 0.5 ? <Volume2 size={16} /> : <Volume1 size={16} />}
                     </button>
                     
                     <input
@@ -318,7 +322,7 @@ function App() {
           <div className="details-and-transition">
             {state.timeline.segments.length > 0 && (
               <div className="timeline-details">
-                <h3>📋 Segment Details</h3>
+                <h3><ListMusic size={18} className="inline-icon" /> Segment Details</h3>
                 {state.timeline.segments.map((segment, index) => {
                   const source = state.sources[segment.sourceId];
                   return (
@@ -342,7 +346,7 @@ function App() {
 
             {state.currentTrack && state.nextTrack && (
               <div className="transition-section">
-                <h3>⚡ Transition Settings</h3>
+                <h3><RotateCcw size={18} className="inline-icon" /> Transition Settings</h3>
                 <div className="transition-options">
                   <div className="transition-group">
                     <h4>Custom Transition</h4>
@@ -373,7 +377,7 @@ function App() {
                           onClick={handleSetTransition}
                           className="set-transition-button"
                         >
-                          ⚡ Set Transition
+                          <RotateCcw size={16} className="inline-icon" /> Set Transition
                         </button>
                       </div>
                     </div>
@@ -386,7 +390,7 @@ function App() {
 
         <div className="sidebar">
           <div className="status">
-            <h3>📊 Timeline Status</h3>
+            <h3><TrendingUp size={18} className="inline-icon" /> Timeline Status</h3>
             <p>
               <strong>Current Track:</strong> 
               <span>{state.currentTrack ? removeFileExtension(state.sources[state.currentTrack]?.name || 'Unknown') : 'None'}</span>
