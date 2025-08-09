@@ -54,20 +54,6 @@ export const Waveform: React.FC<WaveformProps> = ({
 
     if (duration === 0 || segments.length === 0) return;
 
-    // Debug logging to understand segment issues
-    console.log('Waveform Debug:', {
-      currentTime,
-      duration,
-      segmentCount: segments.length,
-      segments: segments.map((seg, idx) => ({
-        index: idx,
-        id: seg.id,
-        timelineStart: seg.timelineStart,
-        timelineEnd: seg.timelineEnd,
-        duration: seg.timelineEnd - seg.timelineStart
-      }))
-    });
-
     // Enhanced color palette
     const colorSchemes = [
       { primary: '#3b82f6', accent: '#60a5fa' },
@@ -122,50 +108,8 @@ export const Waveform: React.FC<WaveformProps> = ({
       currentX += segmentWidth;
     });
 
-    // Draw progress indicator - find current segment and calculate position within visual layout
-    let progressX = 0;
-    let accumulatedWidth = 0;
-    
-    // Find which segment contains the current time
-    const currentSegment = segments.find(seg => 
-      currentTime >= seg.timelineStart && currentTime < seg.timelineEnd
-    );
-    
-    for (let i = 0; i < segments.length; i++) {
-      const segment = segments[i];
-      const segmentDuration = segment.timelineEnd - segment.timelineStart;
-      const segmentWidth = (segmentDuration / duration) * width;
-      
-      if (currentSegment && segment.id === currentSegment.id) {
-        // We're in this segment - calculate position within it
-        const segmentProgress = (currentTime - segment.timelineStart) / segmentDuration;
-        progressX = accumulatedWidth + (segmentProgress * segmentWidth);
-        break;
-      } else if (!currentSegment && currentTime >= segment.timelineEnd) {
-        // We've passed this segment completely
-        accumulatedWidth += segmentWidth;
-        progressX = accumulatedWidth;
-      } else if (!currentSegment && i === segments.length - 1) {
-        // Beyond all segments, use proportional calculation
-        progressX = (currentTime / duration) * width;
-      } else {
-        // Haven't reached this segment yet
-        break;
-      }
-      
-      if (i < segments.length - 1) {
-        accumulatedWidth += segmentWidth;
-      }
-    }
-    
-    console.log('Progress Debug:', {
-      currentTime,
-      duration,
-      currentSegmentId: currentSegment?.id,
-      progressX,
-      canvasWidth: width,
-      segmentCount: segments.length
-    });
+    // Draw progress indicator - simple proportional to timeline
+    const progressX = (currentTime / duration) * width;
     
     // Draw progress line
     ctx.strokeStyle = '#ffffff';
@@ -222,17 +166,6 @@ export const Waveform: React.FC<WaveformProps> = ({
         // Click is in this segment
         const segmentClickRatio = (clickX - accumulatedWidth) / segmentWidth;
         targetTime = segment.timelineStart + (segmentClickRatio * segmentDuration);
-        console.log('Segment click:', {
-          segmentIndex: i,
-          segmentId: segment.id,
-          clickX,
-          accumulatedWidth,
-          segmentWidth,
-          segmentClickRatio,
-          targetTime,
-          segmentTimelineStart: segment.timelineStart,
-          segmentTimelineEnd: segment.timelineEnd
-        });
         break;
       }
       
@@ -243,7 +176,6 @@ export const Waveform: React.FC<WaveformProps> = ({
     if (targetTime === 0 && segments.length > 0) {
       const lastSegment = segments[segments.length - 1];
       targetTime = lastSegment.timelineEnd;
-      console.log('Click beyond segments, seeking to end:', targetTime);
     }
     
     onSeek(targetTime);

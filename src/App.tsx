@@ -37,20 +37,6 @@ function App() {
         // Use the tracked playing segment for audio time calculations
         const playingSegment = currentPlayingSegmentRef.current || currentSegment;
         
-        // Debug current state
-        if (playingSegment) {
-          console.log('Audio playback state:', {
-            audioCurrentTime: currentTime,
-            segmentStart: playingSegment.segmentStart,
-            segmentEnd: playingSegment.segmentEnd,
-            segmentDuration: playingSegment.segmentEnd - playingSegment.segmentStart,
-            timelineStart: playingSegment.timelineStart,
-            timelineEnd: playingSegment.timelineEnd,
-            segmentId: playingSegment.id,
-            shouldTransition: currentTime >= (playingSegment.segmentEnd - playingSegment.segmentStart)
-          });
-        }
-        
         // Calculate actual timeline position
         let timelinePosition = state.timeline.currentTime;
         
@@ -73,12 +59,6 @@ function App() {
         
         // Check if current audio has reached the end of its segment
         if (playingSegment && currentTime >= (playingSegment.segmentEnd - playingSegment.segmentStart)) {
-          console.log('Segment transition triggered:', {
-            currentTime,
-            segmentDuration: playingSegment.segmentEnd - playingSegment.segmentStart,
-            segmentId: playingSegment.id
-          });
-          
           // Find the next segment
           const currentIndex = state.timeline.segments.findIndex(seg => seg.id === playingSegment.id);
           const nextSegment = state.timeline.segments[currentIndex + 1];
@@ -87,8 +67,6 @@ function App() {
             const nextSource = state.sources[nextSegment.sourceId];
             if (nextSource?.buffer) {
               const effectiveVolume = state.timeline.isMuted ? 0 : state.timeline.volume;
-              
-              console.log('Transitioning to next segment:', nextSegment.id);
               
               // Update the tracked playing segment BEFORE starting playback
               currentPlayingSegmentRef.current = nextSegment;
@@ -102,7 +80,6 @@ function App() {
               ).catch(error => console.error('Transition error:', error));
             }
           } else {
-            console.log('No next segment found, stopping playback');
             currentPlayingSegmentRef.current = null;
             dispatch({ type: 'STOP_PLAYBACK' });
           }
@@ -160,13 +137,6 @@ function App() {
   };
 
   const handleSeek = async (time: number) => {
-    console.log('=== SEEK START ===', {
-      seekTime: time,
-      currentTimelineTime: state.timeline.currentTime,
-      currentPlayingSegment: currentPlayingSegmentRef.current?.id,
-      totalDuration: state.timeline.duration
-    });
-    
     // Update the timeline current time immediately for responsive UI
     dispatch({ type: 'SEEK_TO_TIME', payload: { time } });
     
@@ -176,48 +146,31 @@ function App() {
       time < seg.timelineEnd
     );
     
-    console.log('Seek target segment:', {
-      targetSegment: targetSegment ? {
-        id: targetSegment.id,
-        timelineStart: targetSegment.timelineStart,
-        timelineEnd: targetSegment.timelineEnd,
-        segmentStart: targetSegment.segmentStart,
-        segmentEnd: targetSegment.segmentEnd
-      } : null,
-      allSegments: state.timeline.segments.map(seg => ({
-        id: seg.id,
-        timelineStart: seg.timelineStart,
-        timelineEnd: seg.timelineEnd
-      }))
-    });
-    
     if (targetSegment) {
       const source = state.sources[targetSegment.sourceId];
+      
       if (source?.buffer) {
         const effectiveVolume = state.timeline.isMuted ? 0 : state.timeline.volume;
         // Calculate the offset within the target segment
         const segmentOffset = time - targetSegment.timelineStart;
         const seekPosition = targetSegment.segmentStart + segmentOffset;
         
-        console.log('Seek calculation:', {
-          segmentOffset,
-          seekPosition,
-          segmentStart: targetSegment.segmentStart,
-          targetSegmentId: targetSegment.id
-        });
-        
         // Update the tracked playing segment when seeking
+        const previousPlayingSegment = currentPlayingSegmentRef.current;
         currentPlayingSegmentRef.current = targetSegment;
         
         try {
           await audioEngine.seekTo(seekPosition, source.buffer, effectiveVolume, state.timeline.playbackRate);
-          console.log('=== SEEK COMPLETE ===');
         } catch (error) {
           console.error('Seek error:', error);
+          // Restore previous playing segment on error
+          currentPlayingSegmentRef.current = previousPlayingSegment;
         }
+      } else {
+        console.error('No source or buffer found for segment:', targetSegment.sourceId);
       }
     } else {
-      console.log('No target segment found for seek time:', time);
+      console.error('No target segment found for seek time:', time, 'Available segments:', state.timeline.segments.map(seg => ({ id: seg.id, start: seg.timelineStart, end: seg.timelineEnd })));
     }
   };
 
@@ -315,13 +268,6 @@ function App() {
         dispatch({
           type: 'ADD_SEGMENT_TO_TIMELINE',
           payload: { segment: newSegment }
-        });
-        
-        console.log('Added additional track to timeline:', {
-          trackName: source.name,
-          segmentId: newSegment.id,
-          timelineStart: newSegment.timelineStart,
-          timelineEnd: newSegment.timelineEnd
         });
       }
 
