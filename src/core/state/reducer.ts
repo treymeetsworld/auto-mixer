@@ -221,7 +221,28 @@ export function reducer(state: AppState, action: ActionType): AppState {
     }
 
     case 'REMOVE_SEGMENT': {
-      const remaining = state.segments.filter(s => s.id !== action.payload.segmentId);
+      // Find index of segment to remove
+      const removeIndex = state.segments.findIndex(s => s.id === action.payload.segmentId);
+      if (removeIndex === -1) return state;
+
+      // Build new segments without the removed one
+      let remaining = state.segments.filter((_, i) => i !== removeIndex);
+
+      // If we removed the LAST segment and there's a previous one, restore the previous to full duration
+      if (removeIndex === state.segments.length - 1 && remaining.length > 0) {
+        const prevIndex = remaining.length - 1; // previous becomes last
+        const prev = remaining[prevIndex];
+        const src = state.sources[prev.sourceId];
+        if (src) {
+          const restored = {
+            ...prev,
+            segmentEnd: src.duration,
+            segmentDuration: src.duration - prev.segmentStart
+          } as Segment;
+          remaining = remaining.map((s, i) => (i === prevIndex ? restored : s));
+        }
+      }
+
       const newDuration = calculateTimelineDuration(remaining);
 
       // Adjust currentTrack/nextTrack if they reference removed or nonexistent segments
