@@ -91,6 +91,18 @@
             flex-wrap: wrap;
             font-size: 0.85rem;
 
+              .delete-btn {
+                @include button-base;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                padding: 4px 6px;
+                border: 1px solid var(--border-color);
+                background: var(--surface-color);
+                color: var(--text-secondary);
+                border-radius: calc(var(--border-radius) / 3);
+              }
+
             strong {
               color: var(--text-color);
               font-size: 0.9rem;

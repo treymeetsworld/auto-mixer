@@ -243,60 +243,11 @@ function App() {
     return null;
   };
 
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    try {
-      // Create object URL for the file
-      const url = URL.createObjectURL(file);
-      
-      // Resume audio context
-      await audioEngine.resume();
-      
-      // Load the audio buffer
-      const buffer = await audioEngine.loadAudio(url);
-      
-      // Create audio source
-      const source = {
-        id: `source-${Date.now()}`,
-        url,
-        name: file.name,
-        duration: buffer.duration * 1000, // Convert to ms
-        buffer
-      };
-
-      // Load source into state
-      dispatch({ type: 'LOAD_SOURCE', payload: source });
-
-      // If no current track, select this as first track (Step 1 from LOGIC.md)
-      if (!state.currentTrack) {
-        dispatch({ 
-          type: 'SELECT_FIRST_TRACK', 
-          payload: { sourceId: source.id } 
-        });
-      } else if (!state.nextTrack) {
-        // If current track exists but no next track, select as next (Step 2 from LOGIC.md)
-        dispatch({ 
-          type: 'SELECT_NEXT_TRACK', 
-          payload: { sourceId: source.id } 
-        });
-      } else {
-        // Auto-add track using ADD_TRACK_WITH_TRANSITION action
-        // The transition point will be at the end of current timeline
-        dispatch({ 
-          type: 'ADD_TRACK_WITH_TRANSITION',
-          payload: { 
-            sourceId: source.id,
-            transitionPoint: state.timeline.duration 
-          } 
-        });
-      }
-
-    } catch (error) {
-      console.error('Error loading audio:', error);
-    }
+  const handleRemoveSegment = (segmentId: string) => {
+    dispatch({ type: 'REMOVE_SEGMENT', payload: { segmentId } });
   };
+
+  
 
   // Allow selecting a File programmatically (from folder view)
   const handleSelectFile = async (file: File) => {
@@ -435,7 +386,6 @@ function App() {
             volume={state.volume}
             isMuted={state.isMuted}
             playbackRate={state.playbackRate}
-            onFileUpload={handleFileUpload}
             onPlayPause={handlePlayPause}
             onStop={handleStop}
             onSeek={handleSeek}
@@ -451,6 +401,7 @@ function App() {
               sources={state.sources}
               formatTime={formatTime}
               removeFileExtension={removeFileExtension}
+              onRemoveSegment={handleRemoveSegment}
             />
 
             <TransitionSettings

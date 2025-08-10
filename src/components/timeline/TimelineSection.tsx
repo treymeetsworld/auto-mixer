@@ -1,5 +1,4 @@
 import React from 'react';
-import { AudioUpload } from '../controls/AudioUpload';
 import { PlaybackControls } from '../playback/PlaybackControls';
 import type { Segment, AudioSource } from '../../types';
 
@@ -12,7 +11,6 @@ interface TimelineSectionProps {
   volume: number;
   isMuted: boolean;
   playbackRate: number;
-  onFileUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onPlayPause: () => void;
   onStop: () => void;
   onSeek: (time: number) => void;
@@ -31,7 +29,6 @@ export const TimelineSection: React.FC<TimelineSectionProps> = ({
   volume,
   isMuted,
   playbackRate,
-  onFileUpload,
   onPlayPause,
   onStop,
   onSeek,
@@ -69,9 +66,6 @@ export const TimelineSection: React.FC<TimelineSectionProps> = ({
     <div className="timeline-section">
       <div className="timeline-header">
         <h3>Timeline</h3>
-        <div className="timeline-controls">
-          <AudioUpload onFileUpload={onFileUpload} />
-        </div>
       </div>
 
       <div className="segment">

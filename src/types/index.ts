@@ -39,6 +39,7 @@ export type ActionType =
   | { type: 'SELECT_NEXT_TRACK'; payload: { sourceId: string } }
   | { type: 'SET_TRANSITION'; payload: { transitionPoint: number; nextStartOffset?: number } }
   | { type: 'ADD_TRACK_WITH_TRANSITION'; payload: { sourceId: string; transitionPoint: number } }
+  | { type: 'REMOVE_SEGMENT'; payload: { segmentId: string } }
   | { type: 'PLAY_PAUSE' }
   | { type: 'UPDATE_PLAYBACK_TIME'; payload: { currentTime: number } }
   | { type: 'STOP_PLAYBACK' }

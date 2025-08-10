@@ -220,6 +220,27 @@ export function reducer(state: AppState, action: ActionType): AppState {
       };
     }
 
+    case 'REMOVE_SEGMENT': {
+      const remaining = state.segments.filter(s => s.id !== action.payload.segmentId);
+      const newDuration = calculateTimelineDuration(remaining);
+
+      // Adjust currentTrack/nextTrack if they reference removed or nonexistent segments
+      const currentStillExists = remaining.some(s => s.sourceId === state.currentTrack);
+      const nextStillExists = remaining.some(s => s.sourceId === state.nextTrack);
+
+      return {
+        ...state,
+        segments: remaining,
+        timeline: {
+          ...state.timeline,
+          duration: newDuration,
+          currentTime: Math.min(state.timeline.currentTime, newDuration)
+        },
+        currentTrack: currentStillExists ? state.currentTrack : (remaining[0]?.sourceId ?? null),
+        nextTrack: nextStillExists ? state.nextTrack : null
+      };
+    }
+
     default:
       return state;
   }

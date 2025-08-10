@@ -1,5 +1,5 @@
 import React from 'react';
-import { ListMusic } from 'lucide-react';
+import { ListMusic, Trash2 } from 'lucide-react';
 import type { Segment, AudioSource } from '../../types';
 
 interface SegmentDetailsProps {
@@ -7,13 +7,15 @@ interface SegmentDetailsProps {
   sources: Record<string, AudioSource>;
   formatTime: (ms: number) => string;
   removeFileExtension: (filename: string) => string;
+  onRemoveSegment: (segmentId: string) => void;
 }
 
 export const SegmentDetails: React.FC<SegmentDetailsProps> = ({
   segments,
   sources,
   formatTime,
-  removeFileExtension
+  removeFileExtension,
+  onRemoveSegment
 }) => {
   return (
     <div className="timeline-details">
@@ -41,6 +43,15 @@ export const SegmentDetails: React.FC<SegmentDetailsProps> = ({
               <span className="detail-text">
                 Duration: {formatTime(segment.segmentDuration)}
               </span>
+              <button
+                type="button"
+                className="delete-btn"
+                title="Remove segment"
+                onClick={() => onRemoveSegment(segment.id)}
+                style={{ marginLeft: 'auto' }}
+              >
+                <Trash2 size={14} />
+              </button>
             </div>
           </div>
         );
