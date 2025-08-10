@@ -112,17 +112,26 @@
   .playback-controls {
     background: var(--surface-color);
     border-radius: calc(var(--border-radius) / 2);
-    padding: calc(var(--spacing-unit) * 1.5);
+    padding: calc(var(--spacing-unit) * 1.0);
     margin-top: calc(var(--spacing-unit) * 1.5);
     border: 1px solid var(--border-color);
     display: flex;
     flex-direction: column;
-    gap: calc(var(--spacing-unit) * 1.2);
+    gap: calc(var(--spacing-unit) * 1.0);
+
+    .controls-row {
+      display: flex;
+      align-items: center;
+  gap: calc(var(--spacing-unit) * 1.6);
+      width: 100%;
+  justify-content: space-between; // spread left and right clusters
+    }
 
     .transport-controls {
       display: flex;
       align-items: center;
-      gap: calc(var(--spacing-unit) * 1.2);
+      gap: calc(var(--spacing-unit) * 1.0);
+      flex: 0 0 auto;
 
       .control-button {
         @include button-base;
@@ -159,7 +168,7 @@
         gap: calc(var(--spacing-unit) * 0.5);
         @extend .code-font;
         font-size: 0.85rem;
-        margin-left: auto;
+        margin-left: 0;
 
         .current-time {
           color: var(--text-color);
@@ -180,42 +189,19 @@
       }
     }
 
-    .seek-control {
-      .seek-slider {
-        width: 100%;
-        height: 6px;
-        border-radius: 3px;
-        background: var(--surface-color);
-        outline: none;
-        border: 1px solid var(--border-color);
-        cursor: pointer;
+    .seek-control.waveform {
+  flex: 1 1 100%;
+      min-width: 200px;
+  max-width: 100%;
+    }
 
-        &::-webkit-slider-thumb {
-          appearance: none;
-          width: 14px;
-          height: 14px;
-          border-radius: 50%;
-          background: var(--gradient-primary);
-          cursor: pointer;
-          box-shadow: 0 2px 6px rgba(99, 102, 241, 0.4);
-          transition: all 0.2s ease;
-
-          &:hover {
-            transform: scale(1.2);
-            box-shadow: 0 3px 8px rgba(99, 102, 241, 0.6);
-          }
-        }
-
-        &::-moz-range-thumb {
-          width: 14px;
-          height: 14px;
-          border-radius: 50%;
-          background: var(--gradient-primary);
-          cursor: pointer;
-          border: none;
-          box-shadow: 0 2px 6px rgba(99, 102, 241, 0.4);
-        }
-      }
+  .right-controls {
+      display: flex;
+      align-items: center;
+      gap: calc(var(--spacing-unit) * 1.8);
+  margin-left: auto;              // push to the far right
+  flex: 1 1 50%;                  // allow right cluster to use space
+  justify-content: flex-end;      // keep children aligned to the end
     }
 
     .bottom-controls {
@@ -228,7 +214,8 @@
     .volume-control {
       display: flex;
       align-items: center;
-      gap: calc(var(--spacing-unit) * 1.2);
+      gap: calc(var(--spacing-unit) * 1.6);
+  flex: 1 1 auto; // allow volume control group to grow within right-controls
 
       .control-button.mute {
         width: 32px;
@@ -244,7 +231,8 @@
       }
 
       .volume-slider {
-        width: 80px;
+        width: clamp(120px, 20vw, 260px); // smaller slider, still responsive
+        flex: 1 1 auto;
         height: 5px;
         border-radius: 2.5px;
         background: var(--surface-color);
@@ -286,6 +274,7 @@
       display: flex;
       align-items: center;
       gap: calc(var(--spacing-unit) * 0.8);
+  white-space: nowrap; // prevent wrapping when space expands
 
       label {
         color: var(--text-color);

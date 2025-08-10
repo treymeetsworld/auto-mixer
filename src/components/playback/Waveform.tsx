@@ -30,14 +30,23 @@ export const Waveform: React.FC<WaveformProps> = ({
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Make canvas responsive
+    // Make canvas responsive with device pixel ratio scaling for crispness and proportion
     const container = canvas.parentElement;
-    if (container) {
-      canvas.width = container.clientWidth;
-      canvas.height = height;
-    }
+    const dpr = Math.max(window.devicePixelRatio || 1, 1);
+    const cssWidth = container ? container.clientWidth : canvas.clientWidth || 0;
+    const cssHeight = height;
+    // Set internal bitmap size scaled by DPR
+    canvas.width = Math.max(1, Math.floor(cssWidth * dpr));
+    canvas.height = Math.max(1, Math.floor(cssHeight * dpr));
+    // Ensure CSS size matches desired size
+    canvas.style.width = `${cssWidth}px`;
+    canvas.style.height = `${cssHeight}px`;
+    // Scale context so drawing uses CSS pixels
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-    const { width, height: canvasHeight } = canvas;
+    // Use CSS-pixel-based drawing dimensions
+    const width = cssWidth;
+    const canvasHeight = cssHeight;
     
     // Clear canvas with gradient background
     const bgGradient = ctx.createLinearGradient(0, 0, 0, canvasHeight);
@@ -57,7 +66,7 @@ export const Waveform: React.FC<WaveformProps> = ({
       { primary: '#8b5cf6', accent: '#a78bfa' },
     ];
 
-    // Draw segments sequentially without overlaps
+  // Draw segments sequentially without overlaps
     let timelinePosition = 0; // Track timeline position as we draw segments
     
     segments.forEach((segment, index) => {
@@ -75,13 +84,16 @@ export const Waveform: React.FC<WaveformProps> = ({
       segmentGradient.addColorStop(0.5, scheme.primary + '80');
       segmentGradient.addColorStop(1, scheme.accent + '40');
       
-      ctx.fillStyle = segmentGradient;
-      ctx.fillRect(timelinePosition, canvasHeight * 0.2, segmentWidth, canvasHeight * 0.6);
+  ctx.fillStyle = segmentGradient;
+  // Increase inner fill to 80% height with 10% top padding for better proportion
+  const segY = canvasHeight * 0.1;
+  const segH = canvasHeight * 0.8;
+  ctx.fillRect(timelinePosition, segY, segmentWidth, segH);
 
-      // Draw segment border
+  // Draw segment border
       ctx.strokeStyle = scheme.primary;
       ctx.lineWidth = 2;
-      ctx.strokeRect(timelinePosition, canvasHeight * 0.2, segmentWidth, canvasHeight * 0.6);
+  ctx.strokeRect(timelinePosition, segY, segmentWidth, segH);
 
       // Draw segment separator
       if (index > 0) {
@@ -103,7 +115,7 @@ export const Waveform: React.FC<WaveformProps> = ({
     });
 
     // Draw progress indicator - simple proportional to timeline
-    const progressX = (currentTime / duration) * width;
+  const progressX = (currentTime / duration) * width;
     
     // Draw progress line
     ctx.strokeStyle = '#ffffff';

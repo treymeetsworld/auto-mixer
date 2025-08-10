@@ -36,42 +36,44 @@ export const PlaybackControls: React.FC<PlaybackControlsProps> = ({
   onVolumeChange,
   onMuteToggle,
   onPlaybackRateChange,
-  formatTime
+  formatTime,
 }) => {
   return (
     <div className="playback-controls">
-      <TransportControls
-        isPlaying={isPlaying}
-        currentTime={currentTime}
-        duration={duration}
-        onPlayPause={onPlayPause}
-        onStop={onStop}
-        formatTime={formatTime}
-      />
-
       <div className="seek-control waveform">
         <Waveform
           currentTime={currentTime}
           duration={duration}
           onSeek={onSeek}
           segments={segments}
-          height={80}
+          height={140}
           className="timeline-waveform"
         />
       </div>
 
-      <div className="bottom-controls">
-        <VolumeControls
-          volume={volume}
-          isMuted={isMuted}
-          onVolumeChange={onVolumeChange}
-          onMuteToggle={onMuteToggle}
+      <div className="controls-row">
+        <TransportControls
+          isPlaying={isPlaying}
+          currentTime={currentTime}
+          duration={duration}
+          onPlayPause={onPlayPause}
+          onStop={onStop}
+          formatTime={formatTime}
         />
 
-        <PlaybackRateControl
-          playbackRate={playbackRate}
-          onPlaybackRateChange={onPlaybackRateChange}
-        />
+        <div className="right-controls">
+          <VolumeControls
+            volume={volume}
+            isMuted={isMuted}
+            onVolumeChange={onVolumeChange}
+            onMuteToggle={onMuteToggle}
+          />
+
+          <PlaybackRateControl
+            playbackRate={playbackRate}
+            onPlaybackRateChange={onPlaybackRateChange}
+          />
+        </div>
       </div>
     </div>
   );
