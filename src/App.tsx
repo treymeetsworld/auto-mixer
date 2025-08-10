@@ -7,6 +7,7 @@ import { TrendingUp } from 'lucide-react';
 function App() {
   const { state, dispatch, audioEngine } = useAudio();
   const [pendingTransitionPoint, setPendingTransitionPoint] = useState(0);
+  const [artworkUrl, setArtworkUrl] = useState<string | null>(null);
   const animationFrameRef = useRef<number | undefined>(undefined);
   const currentPlayingSegmentRef = useRef<any>(null);
 
@@ -317,6 +318,84 @@ function App() {
     return filename.replace(/\.[^/.]+$/, '');
   };
 
+  // Derive current and next track names based on timeline position
+  const { currentName, nextName } = (() => {
+    const { segments, timeline } = state;
+    let activeIndex = -1;
+    let cumulative = 0;
+    for (let i = 0; i < segments.length; i++) {
+      const seg = segments[i];
+      const start = cumulative;
+      const end = cumulative + seg.segmentDuration;
+      if (timeline.currentTime >= start && timeline.currentTime < end) {
+        activeIndex = i;
+        break;
+      }
+      cumulative = end;
+    }
+    if (activeIndex === -1 && segments.length > 0) activeIndex = segments.length - 1;
+    const currentSeg = segments[activeIndex];
+    const nextSeg = activeIndex >= 0 && activeIndex + 1 < segments.length ? segments[activeIndex + 1] : undefined;
+  const currentName = currentSeg ? removeFileExtension(state.sources[currentSeg.sourceId]?.name || 'Unknown') : 'None';
+  const nextName = nextSeg ? removeFileExtension(state.sources[nextSeg.sourceId]?.name || 'None') : 'None';
+    return { currentName, nextName };
+  })();
+
+  // Fetch album artwork for the current track name (simple public API)
+  useEffect(() => {
+    if (!currentName || currentName === 'None') {
+      setArtworkUrl(null);
+      return;
+    }
+    const controller = new AbortController();
+    // Parse the filename into artist and title to improve search accuracy
+    const parseTrack = (name: string) => {
+      const stripped = name.replace(/[\(\[\{].*?[\)\]\}]/g, '').trim(); // remove (Clean), [Remix], etc.
+      const parts = stripped.split(' - ');
+      let artist: string | undefined;
+      let title: string | undefined;
+      if (parts.length >= 2) {
+        artist = parts[0]?.trim();
+        title = parts.slice(1).join(' - ').trim();
+      } else {
+        title = stripped;
+      }
+      const stripFeat = (s?: string) => s?.replace(/\b(feat\.?|ft\.?|featuring)\b.*$/i, '').trim();
+      artist = stripFeat(artist);
+      title = stripFeat(title);
+      return { artist, title };
+    };
+
+    const searchITunes = async (term: string) => {
+      const url = `https://itunes.apple.com/search?term=${encodeURIComponent(term)}&media=music&entity=musicTrack&limit=1`;
+      const res = await fetch(url, { signal: controller.signal });
+      if (!res.ok) return null;
+      try { return await res.json(); } catch { return null; }
+    };
+
+    (async () => {
+      try {
+        const { artist, title } = parseTrack(currentName);
+        const candidates: string[] = [];
+        if (title && artist) candidates.push(`${title} ${artist}`);
+        if (title) candidates.push(title);
+        if (artist) candidates.push(artist);
+        if (candidates.length === 0) candidates.push(currentName);
+
+        let foundUrl: string | null = null;
+        for (const q of candidates) {
+          const data = await searchITunes(q);
+          const raw = data?.results?.[0]?.artworkUrl100 as string | undefined;
+          if (raw) { foundUrl = raw.replace('100x100', '200x200'); break; }
+        }
+        setArtworkUrl(foundUrl);
+      } catch {
+        // ignore network or parsing errors
+      }
+    })();
+    return () => controller.abort();
+  }, [currentName]);
+
   return (
     <div className="app">
       <div className="content">
@@ -363,13 +442,23 @@ function App() {
         <div className="sidebar">
           <div className="status">
             <h3><TrendingUp size={18} className="inline-icon" /> Timeline Status</h3>
+            <div className="tracks-overview">
+              <div className="track-card current">
+                <div className="label">Current</div>
+                <div className="album-art" aria-label="Current track artwork">
+                  {artworkUrl ? (
+                    <img src={artworkUrl} alt={`Artwork for ${currentName}`} />
+                  ) : (
+                    <span>🎵</span>
+                  )}
+                </div>
+                <div className="name">{currentName}</div>
+              </div>
+            </div>
+
             <p>
-              <strong>Current Track:</strong> 
-              <span>{state.currentTrack ? removeFileExtension(state.sources[state.currentTrack]?.name || 'Unknown') : 'None'}</span>
-            </p>
-            <p>
-              <strong>Next Track:</strong> 
-              <span>{state.nextTrack ? removeFileExtension(state.sources[state.nextTrack]?.name || 'Unknown') : 'None'}</span>
+              <strong>Next Track:</strong>
+              <span title={nextName}>{nextName}</span>
             </p>
             <p>
               <strong>Timeline Duration:</strong> 

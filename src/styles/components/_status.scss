@@ -25,11 +25,69 @@
     font-weight: 600;
   }
 
+  .tracks-overview {
+    display: block;
+    margin-bottom: calc(var(--spacing-unit) * 2);
+    width: 100%;
+    box-sizing: border-box;
+
+    .track-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: calc(var(--spacing-unit) * 1.5);
+      background: var(--surface-color);
+      border: 1px solid var(--border-color);
+      border-radius: calc(var(--border-radius) / 2);
+      width: 100%;
+      box-sizing: border-box;
+
+      .label {
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        margin-bottom: calc(var(--spacing-unit) * 0.75);
+      }
+
+      .album-art {
+        width: 100%;
+        aspect-ratio: 1 / 1; // large square art filling card width
+        border-radius: 8px;
+        background: var(--gradient-surface);
+        border: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: calc(var(--spacing-unit) * 0.75);
+
+        span { font-size: 2rem; }
+        img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          border-radius: 8px;
+          display: block;
+        }
+      }
+
+      .name {
+        color: var(--text-color);
+        font-weight: 600;
+        font-size: 1rem;
+        max-width: 100%;
+        word-break: break-word;
+      }
+    }
+  }
+
   p {
     margin-bottom: calc(var(--spacing-unit) * 1.5);
     display: flex;
-    justify-content: flex-start;
-    align-items: center;
+  justify-content: flex-start;
+  align-items: center;
+  width: 100%;
+  box-sizing: border-box;
+  flex-wrap: nowrap;
     gap: calc(var(--spacing-unit));
     padding: calc(var(--spacing-unit) * 1.5);
     border-radius: calc(var(--border-radius) / 2);
@@ -48,22 +106,48 @@
 
     strong {
       color: var(--text-color);
-      min-width: 150px;
+  min-width: clamp(90px, 35%, 140px);
       font-weight: 500;
       text-align: left;
       flex-shrink: 0;
     }
 
-    span {
+  span {
       color: var(--text-secondary);
       @extend .code-font;
       background: rgba(99, 102, 241, 0.1);
       padding: calc(var(--spacing-unit) * 0.5) calc(var(--spacing-unit));
       border-radius: calc(var(--border-radius) / 3);
       border: 1px solid rgba(99, 102, 241, 0.2);
-      text-align: right;
-      flex: 1;
-      min-width: 0;
+  text-align: right;
+  flex: 1 1 auto;
+  min-width: 0;
+      white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+    }
+  }
+
+  // Responsive tweaks for narrow sidebars
+  @media (max-width: 900px) {
+    p {
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: calc(var(--spacing-unit) * 0.75);
+
+      strong {
+        min-width: auto;
+        flex: 0 0 auto;
+      }
+
+      span {
+        flex: 1 1 100%;
+        min-width: 0;
+        white-space: normal; // allow wrapping on narrow screens
+        overflow: visible;
+        text-overflow: clip;
+        text-align: left;
+      }
     }
   }
 }
