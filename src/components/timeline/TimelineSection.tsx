@@ -89,6 +89,7 @@ export const TimelineSection: React.FC<TimelineSectionProps> = ({
           isMuted={isMuted}
           playbackRate={playbackRate}
           segments={segments}
+          sources={sources}
           onPlayPause={onPlayPause}
           onStop={onStop}
           onSeek={onSeek}

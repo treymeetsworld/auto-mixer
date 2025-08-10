@@ -3,7 +3,7 @@ import { TransportControls } from '../controls/TransportControls';
 import { VolumeControls } from '../controls/VolumeControls';
 import { PlaybackRateControl } from '../controls/PlaybackRateControl';
 import { Waveform } from './Waveform';
-import type { Segment } from '../../types';
+import type { Segment, AudioSource } from '../../types';
 
 interface PlaybackControlsProps {
   isPlaying: boolean;
@@ -13,6 +13,7 @@ interface PlaybackControlsProps {
   isMuted: boolean;
   playbackRate: number;
   segments: Segment[];
+  sources: Record<string, AudioSource>;
   onPlayPause: () => void;
   onStop: () => void;
   onSeek: (time: number) => void;
@@ -30,6 +31,7 @@ export const PlaybackControls: React.FC<PlaybackControlsProps> = ({
   isMuted,
   playbackRate,
   segments,
+  sources,
   onPlayPause,
   onStop,
   onSeek,
@@ -46,6 +48,7 @@ export const PlaybackControls: React.FC<PlaybackControlsProps> = ({
           duration={duration}
           onSeek={onSeek}
           segments={segments}
+          sources={sources}
           height={140}
           className="timeline-waveform"
         />

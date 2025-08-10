@@ -444,7 +444,6 @@ function App() {
             <h3><TrendingUp size={18} className="inline-icon" /> Timeline Status</h3>
             <div className="tracks-overview">
               <div className="track-card current">
-                <div className="label">Current</div>
                 <div className="album-art" aria-label="Current track artwork">
                   {artworkUrl ? (
                     <img src={artworkUrl} alt={`Artwork for ${currentName}`} />

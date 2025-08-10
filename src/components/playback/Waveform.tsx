@@ -1,14 +1,15 @@
 import { useState, useRef, useEffect } from 'react';
-import type { Segment } from '../../types';
+import type { Segment, AudioSource } from '../../types';
 
 interface WaveformProps {
-  audioBuffer?: AudioBuffer;
+  audioBuffer?: AudioBuffer; // unused now; using sources per segment
   currentTime: number;
   duration: number;
   onSeek: (time: number) => void;
   className?: string;
   height?: number;
   segments?: Segment[];
+  sources: Record<string, AudioSource>;
 }
 
 export const Waveform: React.FC<WaveformProps> = ({
@@ -17,7 +18,8 @@ export const Waveform: React.FC<WaveformProps> = ({
   onSeek,
   className = '',
   height = 80,
-  segments = []
+  segments = [],
+  sources
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isInteracting, setIsInteracting] = useState(false);
@@ -48,14 +50,10 @@ export const Waveform: React.FC<WaveformProps> = ({
     const width = cssWidth;
     const canvasHeight = cssHeight;
     
-    // Clear canvas with gradient background
-    const bgGradient = ctx.createLinearGradient(0, 0, 0, canvasHeight);
-    bgGradient.addColorStop(0, '#1a1a1a');
-    bgGradient.addColorStop(1, '#0f0f0f');
-    ctx.fillStyle = bgGradient;
-    ctx.fillRect(0, 0, width, canvasHeight);
+  // Clear canvas using transparent background; container handles theming
+  ctx.clearRect(0, 0, width, canvasHeight);
 
-    if (duration === 0 || segments.length === 0) return;
+  if (duration === 0 || segments.length === 0) return;
 
     // Enhanced color palette
     const colorSchemes = [
@@ -66,51 +64,68 @@ export const Waveform: React.FC<WaveformProps> = ({
       { primary: '#8b5cf6', accent: '#a78bfa' },
     ];
 
-  // Draw segments sequentially without overlaps
+    // Draw segments sequentially without overlaps, using real waveform data when available
     let timelinePosition = 0; // Track timeline position as we draw segments
     
     segments.forEach((segment, index) => {
-      // In new architecture, segments are sequential with no timeline info
-      // Each segment's duration determines its visual width
       const segmentWidth = (segment.segmentDuration / duration) * width;
-
       if (segmentWidth < 1) return; // Skip tiny segments
 
       const scheme = colorSchemes[index % colorSchemes.length];
-      
-      // Create gradient for the segment
-      const segmentGradient = ctx.createLinearGradient(0, 0, 0, canvasHeight);
-      segmentGradient.addColorStop(0, scheme.accent + '40');
-      segmentGradient.addColorStop(0.5, scheme.primary + '80');
-      segmentGradient.addColorStop(1, scheme.accent + '40');
-      
-  ctx.fillStyle = segmentGradient;
-  // Increase inner fill to 80% height with 10% top padding for better proportion
-  const segY = canvasHeight * 0.1;
-  const segH = canvasHeight * 0.8;
-  ctx.fillRect(timelinePosition, segY, segmentWidth, segH);
+      const buffer = sources[segment.sourceId]?.buffer;
 
-  // Draw segment border
-      ctx.strokeStyle = scheme.primary;
-      ctx.lineWidth = 2;
-  ctx.strokeRect(timelinePosition, segY, segmentWidth, segH);
+      // Visual area
+      const segX = timelinePosition;
+      const segY = canvasHeight * 0.1;
+      const segH = canvasHeight * 0.8;
+      const midY = segY + segH / 2;
 
-      // Draw segment separator
+      if (buffer && buffer.numberOfChannels > 0) {
+        const sampleRate = buffer.sampleRate;
+        const startSample = Math.max(0, Math.floor((segment.segmentStart / 1000) * sampleRate));
+        const endSample = Math.min(buffer.length, Math.floor((segment.segmentEnd / 1000) * sampleRate));
+        const samplesInSegment = Math.max(1, endSample - startSample);
+        const samplesPerPixel = samplesInSegment / Math.max(1, Math.floor(segmentWidth));
+        const channelData = buffer.getChannelData(0);
+
+        ctx.fillStyle = scheme.primary;
+        // Draw vertical bars per pixel using min/max within the window
+        for (let x = 0; x < segmentWidth; x++) {
+          const windowStart = Math.floor(startSample + x * samplesPerPixel);
+          const windowEnd = Math.min(endSample, Math.floor(startSample + (x + 1) * samplesPerPixel));
+          let min = 1.0;
+          let max = -1.0;
+          for (let i = windowStart; i < windowEnd; i += 1) {
+            const v = channelData[i] || 0;
+            if (v < min) min = v;
+            if (v > max) max = v;
+          }
+          // Convert to pixel coordinates
+          const yTop = midY - (max * (segH / 2));
+          const yBot = midY - (min * (segH / 2));
+          const barH = Math.max(1, yBot - yTop);
+          ctx.fillRect(segX + x, yTop, 1, barH);
+        }
+      } else {
+        // Fallback: draw a simple gradient block
+        const segmentGradient = ctx.createLinearGradient(0, 0, 0, canvasHeight);
+        segmentGradient.addColorStop(0, scheme.accent + '40');
+        segmentGradient.addColorStop(0.5, scheme.primary + '80');
+        segmentGradient.addColorStop(1, scheme.accent + '40');
+        ctx.fillStyle = segmentGradient;
+        ctx.fillRect(segX, segY, segmentWidth, segH);
+      }
+
+      // Optional: segment separator
       if (index > 0) {
-        ctx.strokeStyle = scheme.primary;
-        ctx.lineWidth = 2;
+        ctx.strokeStyle = scheme.accent;
+        ctx.lineWidth = 1;
         ctx.beginPath();
-        ctx.moveTo(timelinePosition, 0);
-        ctx.lineTo(timelinePosition, canvasHeight);
+        ctx.moveTo(segX, segY);
+        ctx.lineTo(segX, segY + segH);
         ctx.stroke();
       }
 
-      // Add segment label for debugging
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-      ctx.font = '12px monospace';
-      ctx.fillText(`S${index + 1}`, timelinePosition + 5, 20);
-
-      // Move to next timeline position
       timelinePosition += segmentWidth;
     });
 
@@ -135,7 +150,7 @@ export const Waveform: React.FC<WaveformProps> = ({
     ctx.fillStyle = progressGradient;
     ctx.fillRect(0, 0, progressX, canvasHeight);
 
-  }, [currentTime, duration, segments, height]);
+  }, [currentTime, duration, segments, height, sources]);
 
   // Handle window resize
   useEffect(() => {
@@ -210,11 +225,7 @@ export const Waveform: React.FC<WaveformProps> = ({
         onMouseUp={handleMouseUp}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseUp}
-        style={{ 
-          cursor: isInteracting ? 'grabbing' : 'pointer',
-          borderRadius: '8px',
-          background: 'linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%)'
-        }}
+  style={{ cursor: isInteracting ? 'grabbing' : 'pointer' }}
       />
     </div>
   );
