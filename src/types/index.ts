@@ -37,7 +37,7 @@ export type ActionType =
   | { type: 'LOAD_SOURCE'; payload: AudioSource }
   | { type: 'SELECT_FIRST_TRACK'; payload: { sourceId: string } }
   | { type: 'SELECT_NEXT_TRACK'; payload: { sourceId: string } }
-  | { type: 'SET_TRANSITION'; payload: { transitionPoint: number } }
+  | { type: 'SET_TRANSITION'; payload: { transitionPoint: number; nextStartOffset?: number } }
   | { type: 'ADD_TRACK_WITH_TRANSITION'; payload: { sourceId: string; transitionPoint: number } }
   | { type: 'PLAY_PAUSE' }
   | { type: 'UPDATE_PLAYBACK_TIME'; payload: { currentTime: number } }

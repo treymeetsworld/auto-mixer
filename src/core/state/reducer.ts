@@ -95,11 +95,12 @@ export function reducer(state: AppState, action: ActionType): AppState {
         return segment;
       });
 
-      // Create next segment with full duration initially
+      // Create next segment with full duration initially, allowing custom start offset
+      const startOffset = Math.max(0, Math.min(nextSource.duration, action.payload.nextStartOffset ?? 0));
       const nextSegment = createSegment(
         `segment-${state.nextTrack}-1`,
         state.nextTrack,
-        0,
+        startOffset,
         nextSource.duration
       );
 

@@ -298,11 +298,11 @@ function App() {
     }
   };
 
-  const handleSetTransition = () => {
+  const handleSetTransition = (nextStartOffset?: number) => {
     if (state.currentTrack && state.nextTrack && pendingTransitionPoint !== undefined) {
       dispatch({ 
         type: 'SET_TRANSITION', 
-        payload: { transitionPoint: pendingTransitionPoint } 
+        payload: { transitionPoint: pendingTransitionPoint, nextStartOffset } 
       });
     }
   };
