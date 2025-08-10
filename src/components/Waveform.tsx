@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import type { Segment } from '../types';
 
 interface WaveformProps {
   audioBuffer?: AudioBuffer;
@@ -7,14 +8,7 @@ interface WaveformProps {
   onSeek: (time: number) => void;
   className?: string;
   height?: number;
-  segments?: Array<{
-    id: string;
-    timelineStart: number;
-    timelineEnd: number;
-    segmentStart: number;
-    segmentEnd: number;
-    sourceId: string;
-  }>;
+  segments?: Segment[];
 }
 
 export const Waveform: React.FC<WaveformProps> = ({
@@ -64,12 +58,12 @@ export const Waveform: React.FC<WaveformProps> = ({
     ];
 
     // Draw segments sequentially without overlaps
-    let currentX = 0;
+    let timelinePosition = 0; // Track timeline position as we draw segments
     
     segments.forEach((segment, index) => {
-      // Calculate segment width based on its duration relative to total duration
-      const segmentDuration = segment.timelineEnd - segment.timelineStart;
-      const segmentWidth = (segmentDuration / duration) * width;
+      // In new architecture, segments are sequential with no timeline info
+      // Each segment's duration determines its visual width
+      const segmentWidth = (segment.segmentDuration / duration) * width;
 
       if (segmentWidth < 1) return; // Skip tiny segments
 
@@ -82,30 +76,30 @@ export const Waveform: React.FC<WaveformProps> = ({
       segmentGradient.addColorStop(1, scheme.accent + '40');
       
       ctx.fillStyle = segmentGradient;
-      ctx.fillRect(currentX, canvasHeight * 0.2, segmentWidth, canvasHeight * 0.6);
+      ctx.fillRect(timelinePosition, canvasHeight * 0.2, segmentWidth, canvasHeight * 0.6);
 
       // Draw segment border
       ctx.strokeStyle = scheme.primary;
       ctx.lineWidth = 2;
-      ctx.strokeRect(currentX, canvasHeight * 0.2, segmentWidth, canvasHeight * 0.6);
+      ctx.strokeRect(timelinePosition, canvasHeight * 0.2, segmentWidth, canvasHeight * 0.6);
 
       // Draw segment separator
       if (index > 0) {
         ctx.strokeStyle = scheme.primary;
         ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.moveTo(currentX, 0);
-        ctx.lineTo(currentX, canvasHeight);
+        ctx.moveTo(timelinePosition, 0);
+        ctx.lineTo(timelinePosition, canvasHeight);
         ctx.stroke();
       }
 
       // Add segment label for debugging
       ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
       ctx.font = '12px monospace';
-      ctx.fillText(`S${index + 1}`, currentX + 5, 20);
+      ctx.fillText(`S${index + 1}`, timelinePosition + 5, 20);
 
-      // Move to next position
-      currentX += segmentWidth;
+      // Move to next timeline position
+      timelinePosition += segmentWidth;
     });
 
     // Draw progress indicator - simple proportional to timeline
@@ -153,29 +147,29 @@ export const Waveform: React.FC<WaveformProps> = ({
     const rect = canvas.getBoundingClientRect();
     const clickX = e.clientX - rect.left;
     
-    // Find which segment was clicked based on visual layout
-    let accumulatedWidth = 0;
+    // Find which segment was clicked and calculate timeline position
+    let cumulativeTimelineTime = 0; // Cumulative timeline time (not visual position)
+    let cumulativeVisualWidth = 0; // Cumulative visual width
     let targetTime = 0;
     
     for (let i = 0; i < segments.length; i++) {
       const segment = segments[i];
-      const segmentDuration = segment.timelineEnd - segment.timelineStart;
-      const segmentWidth = (segmentDuration / duration) * rect.width;
+      const segmentWidth = (segment.segmentDuration / duration) * rect.width;
       
-      if (clickX >= accumulatedWidth && clickX < accumulatedWidth + segmentWidth) {
+      if (clickX >= cumulativeVisualWidth && clickX < cumulativeVisualWidth + segmentWidth) {
         // Click is in this segment
-        const segmentClickRatio = (clickX - accumulatedWidth) / segmentWidth;
-        targetTime = segment.timelineStart + (segmentClickRatio * segmentDuration);
+        const segmentClickRatio = (clickX - cumulativeVisualWidth) / segmentWidth;
+        targetTime = cumulativeTimelineTime + (segmentClickRatio * segment.segmentDuration);
         break;
       }
       
-      accumulatedWidth += segmentWidth;
+      cumulativeTimelineTime += segment.segmentDuration;
+      cumulativeVisualWidth += segmentWidth;
     }
     
-    // If click is beyond all segments, seek to end of last segment
+    // If click is beyond all segments, seek to total timeline duration
     if (targetTime === 0 && segments.length > 0) {
-      const lastSegment = segments[segments.length - 1];
-      targetTime = lastSegment.timelineEnd;
+      targetTime = duration;
     }
     
     onSeek(targetTime);

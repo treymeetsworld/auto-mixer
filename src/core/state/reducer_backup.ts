@@ -49,7 +49,7 @@ export function reducer(state: AppState, action: ActionType): AppState {
       const source = state.sources[action.payload.sourceId];
       if (!source) return state;
 
-      const firstSegment = createSegment(
+      const segment = createSegment(
         `segment-${action.payload.sourceId}-1`,
         action.payload.sourceId,
         0,
@@ -58,22 +58,22 @@ export function reducer(state: AppState, action: ActionType): AppState {
 
       return {
         ...state,
-        segments: [firstSegment],
+        currentTrack: action.payload.sourceId,
+        segments: [segment],
         timeline: {
           ...state.timeline,
-          duration: source.duration
-        },
-        currentTrack: action.payload.sourceId
+          duration: calculateTimelineDuration([segment])
+        }
       };
     }
 
-    case 'SELECT_NEXT_TRACK': {
-      // Step 2: Next Track Selection - just set the nextTrack, no segments yet
+    case 'SELECT_NEXT_TRACK':
+      // Step 2 from LOGIC.md: Next Track Setup
+      // Store as nextTrack, no timeline changes yet
       return {
         ...state,
         nextTrack: action.payload.sourceId
       };
-    }
 
     case 'SET_TRANSITION': {
       // Step 3: Transition Point Setting - truncate current segment and add next segment  
@@ -156,6 +156,71 @@ export function reducer(state: AppState, action: ActionType): AppState {
       };
     }
 
+    case 'PLAY_PAUSE':
+      return {
+        ...state,
+        timeline: {
+          ...state.timeline,
+          isPlaying: !state.timeline.isPlaying
+        }
+      };
+
+    case 'UPDATE_PLAYBACK_TIME':
+      return {
+        ...state,
+        timeline: {
+          ...state.timeline,
+          currentTime: action.payload.currentTime
+        }
+      };
+
+    case 'STOP_PLAYBACK':
+      return {
+        ...state,
+        timeline: {
+          ...state.timeline,
+          isPlaying: false,
+          currentTime: 0
+        }
+      };
+
+    case 'SEEK_TO_TIME':
+      return {
+        ...state,
+        timeline: {
+          ...state.timeline,
+          currentTime: Math.max(0, Math.min(action.payload.time, state.timeline.duration))
+        }
+      };
+
+    case 'SET_VOLUME':
+      return {
+        ...state,
+        timeline: {
+          ...state.timeline,
+          volume: Math.max(0, Math.min(1, action.payload.volume))
+        }
+      };
+
+    case 'TOGGLE_MUTE':
+      return {
+        ...state,
+        timeline: {
+          ...state.timeline,
+          isMuted: !state.timeline.isMuted
+        }
+      };
+
+    case 'SET_PLAYBACK_RATE':
+      return {
+        ...state,
+        timeline: {
+          ...state.timeline,
+          playbackRate: Math.max(0.25, Math.min(2.0, action.payload.rate))
+        }
+      };
+    }
+
     case 'PLAY_PAUSE': {
       return {
         ...state,
@@ -222,4 +287,9 @@ export function reducer(state: AppState, action: ActionType): AppState {
     default:
       return state;
   }
-}
+};
+
+    default:
+      return state;
+  }
+};

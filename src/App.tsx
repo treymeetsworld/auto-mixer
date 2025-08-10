@@ -20,72 +20,84 @@ function App() {
   const animationFrameRef = useRef<number | undefined>(undefined);
   const currentPlayingSegmentRef = useRef<any>(null);
 
-  // Update playback time with transition detection
+  // Animation frame for playback progress
   useEffect(() => {
     if (state.timeline.isPlaying) {
       const updateTime = () => {
-        const currentTime = audioEngine.getCurrentTime();
-        
-        // Find current segment based on timeline position
-        const currentSegment = getCurrentSegment();
-        
-        // If we don't have a playing segment tracked, set it to the current segment
-        if (!currentPlayingSegmentRef.current && currentSegment) {
-          currentPlayingSegmentRef.current = currentSegment;
-        }
-        
-        // Use the tracked playing segment for audio time calculations
-        const playingSegment = currentPlayingSegmentRef.current || currentSegment;
-        
-        // Calculate actual timeline position
-        let timelinePosition = state.timeline.currentTime;
-        
-        if (playingSegment) {
-          // Calculate timeline position based on current playing segment and audio position
-          const segmentOffset = Math.min(currentTime, playingSegment.segmentEnd - playingSegment.segmentStart);
-          timelinePosition = playingSegment.timelineStart + segmentOffset;
-        }
-        
-        dispatch({ 
-          type: 'UPDATE_PLAYBACK_TIME', 
-          payload: { currentTime: timelinePosition } 
-        });
-        
-        // Stop at end of timeline
-        if (timelinePosition >= state.timeline.duration) {
-          dispatch({ type: 'STOP_PLAYBACK' });
-          return;
-        }
-        
-        // Check if current audio has reached the end of its segment
-        if (playingSegment && currentTime >= (playingSegment.segmentEnd - playingSegment.segmentStart)) {
-          // Find the next segment
-          const currentIndex = state.timeline.segments.findIndex(seg => seg.id === playingSegment.id);
-          const nextSegment = state.timeline.segments[currentIndex + 1];
+        try {
+          const currentTime = audioEngine.getCurrentTime();
           
-          if (nextSegment) {
-            const nextSource = state.sources[nextSegment.sourceId];
-            if (nextSource?.buffer) {
-              const effectiveVolume = state.timeline.isMuted ? 0 : state.timeline.volume;
-              
-              // Update the tracked playing segment BEFORE starting playback
-              currentPlayingSegmentRef.current = nextSegment;
-              
-              // Transition to next segment
-              audioEngine.play(
-                nextSource.buffer, 
-                nextSegment.segmentStart,
-                effectiveVolume,
-                state.timeline.playbackRate
-              ).catch(error => console.error('Transition error:', error));
-            }
-          } else {
-            currentPlayingSegmentRef.current = null;
-            dispatch({ type: 'STOP_PLAYBACK' });
+          // Find current segment based on timeline position
+          const currentSegment = getCurrentSegment();
+          
+          // If we don't have a playing segment tracked, set it to the current segment
+          if (!currentPlayingSegmentRef.current && currentSegment) {
+            currentPlayingSegmentRef.current = currentSegment;
           }
+          
+          // Use the tracked playing segment for audio time calculations
+          const playingSegment = currentPlayingSegmentRef.current || currentSegment;
+          
+          // Calculate actual timeline position
+          let timelinePosition = state.timeline.currentTime;
+          
+          if (playingSegment) {
+            // Calculate timeline start position for the current playing segment
+            let segmentTimelineStart = 0;
+            for (const segment of state.segments) {
+              if (segment.id === playingSegment.id) break;
+              segmentTimelineStart += segment.segmentDuration;
+            }
+            
+            // Calculate timeline position based on current playing segment and audio position
+            const segmentOffset = Math.min(currentTime, playingSegment.segmentEnd - playingSegment.segmentStart);
+            timelinePosition = segmentTimelineStart + segmentOffset;
+          }
+          
+          dispatch({ 
+            type: 'UPDATE_PLAYBACK_TIME', 
+            payload: { currentTime: timelinePosition } 
+          });
+          
+          // Stop at end of timeline
+          if (timelinePosition >= state.timeline.duration) {
+            dispatch({ type: 'STOP_PLAYBACK' });
+            return;
+          }
+          
+          // Check if current audio has reached the end of its segment
+          if (playingSegment && currentTime >= (playingSegment.segmentEnd - playingSegment.segmentStart)) {
+            // Find the next segment
+            const currentIndex = state.segments.findIndex(seg => seg.id === playingSegment.id);
+            const nextSegment = state.segments[currentIndex + 1];
+            
+            if (nextSegment) {
+              const nextSource = state.sources[nextSegment.sourceId];
+              if (nextSource?.buffer) {
+                const effectiveVolume = state.isMuted ? 0 : state.volume;
+                
+                // Update the tracked playing segment BEFORE starting playback
+                currentPlayingSegmentRef.current = nextSegment;
+                
+                // Transition to next segment
+                audioEngine.play(
+                  nextSource.buffer, 
+                  nextSegment.segmentStart,
+                  effectiveVolume,
+                  state.playbackRate
+                ).catch(error => console.error('Transition error:', error));
+              }
+            } else {
+              currentPlayingSegmentRef.current = null;
+              dispatch({ type: 'STOP_PLAYBACK' });
+            }
+          }
+          
+          animationFrameRef.current = requestAnimationFrame(updateTime);
+        } catch (error) {
+          console.error('Playback error:', error);
+          dispatch({ type: 'STOP_PLAYBACK' });
         }
-        
-        animationFrameRef.current = requestAnimationFrame(updateTime);
       };
       
       animationFrameRef.current = requestAnimationFrame(updateTime);
@@ -108,8 +120,15 @@ function App() {
         // Find current segment based on timeline position
         const currentSegment = getCurrentSegment();
         if (currentSegment && currentSegment.buffer) {
-          const segmentOffset = state.timeline.currentTime - currentSegment.timelineStart;
-          const effectiveVolume = state.timeline.isMuted ? 0 : state.timeline.volume;
+          // Calculate timeline start position for this segment
+          let segmentTimelineStart = 0;
+          for (const segment of state.segments) {
+            if (segment.id === currentSegment.id) break;
+            segmentTimelineStart += segment.segmentDuration;
+          }
+          
+          const segmentOffset = state.timeline.currentTime - segmentTimelineStart;
+          const effectiveVolume = state.isMuted ? 0 : state.volume;
           
           // Reset the tracked playing segment when starting fresh
           currentPlayingSegmentRef.current = currentSegment;
@@ -118,7 +137,7 @@ function App() {
             currentSegment.buffer, 
             currentSegment.segmentStart + segmentOffset,
             effectiveVolume,
-            state.timeline.playbackRate
+            state.playbackRate
           );
         }
       } else {
@@ -140,19 +159,27 @@ function App() {
     // Update the timeline current time immediately for responsive UI
     dispatch({ type: 'SEEK_TO_TIME', payload: { time } });
     
-    // Find the segment that contains the target seek time
-    const targetSegment = state.timeline.segments.find(seg => 
-      time >= seg.timelineStart && 
-      time < seg.timelineEnd
-    );
+    // Calculate which segment contains the target time
+    let cumulativeTime = 0;
+    let targetSegment = null;
+    let segmentTimelineStart = 0;
+    
+    for (const segment of state.segments) {
+      if (time >= cumulativeTime && time < cumulativeTime + segment.segmentDuration) {
+        targetSegment = segment;
+        segmentTimelineStart = cumulativeTime;
+        break;
+      }
+      cumulativeTime += segment.segmentDuration;
+    }
     
     if (targetSegment) {
       const source = state.sources[targetSegment.sourceId];
       
       if (source?.buffer) {
-        const effectiveVolume = state.timeline.isMuted ? 0 : state.timeline.volume;
+        const effectiveVolume = state.isMuted ? 0 : state.volume;
         // Calculate the offset within the target segment
-        const segmentOffset = time - targetSegment.timelineStart;
+        const segmentOffset = time - segmentTimelineStart;
         const seekPosition = targetSegment.segmentStart + segmentOffset;
         
         // Update the tracked playing segment when seeking
@@ -160,7 +187,7 @@ function App() {
         currentPlayingSegmentRef.current = targetSegment;
         
         try {
-          await audioEngine.seekTo(seekPosition, source.buffer, effectiveVolume, state.timeline.playbackRate);
+          await audioEngine.seekTo(seekPosition, source.buffer, effectiveVolume, state.playbackRate);
         } catch (error) {
           console.error('Seek error:', error);
           // Restore previous playing segment on error
@@ -170,7 +197,7 @@ function App() {
         console.error('No source or buffer found for segment:', targetSegment.sourceId);
       }
     } else {
-      console.error('No target segment found for seek time:', time, 'Available segments:', state.timeline.segments.map(seg => ({ id: seg.id, start: seg.timelineStart, end: seg.timelineEnd })));
+      console.error('No target segment found for seek time:', time, 'Available segments:', state.segments.map(seg => ({ id: seg.id, duration: seg.segmentDuration })));
     }
   };
 
@@ -180,12 +207,11 @@ function App() {
   };
 
   const handleMuteToggle = () => {
-    const newMuted = !state.timeline.isMuted;
-    audioEngine.setMuted(newMuted);
     dispatch({ type: 'TOGGLE_MUTE' });
-  };
-
-  const handlePlaybackRateChange = (rate: number) => {
+    const newMutedState = !state.isMuted;
+    const effectiveVolume = newMutedState ? 0 : state.volume;
+    audioEngine.setVolume(effectiveVolume);
+  };  const handlePlaybackRateChange = (rate: number) => {
     audioEngine.setPlaybackRate(rate);
     dispatch({ type: 'SET_PLAYBACK_RATE', payload: { rate } });
     
@@ -197,15 +223,18 @@ function App() {
   };
 
   const getCurrentSegment = () => {
-    const segment = state.timeline.segments.find(seg => 
-      state.timeline.currentTime >= seg.timelineStart && 
-      state.timeline.currentTime < seg.timelineEnd
-    );
+    // Calculate which segment contains the current time
+    let cumulativeTime = 0;
     
-    if (segment) {
-      const source = state.sources[segment.sourceId];
-      return { ...segment, buffer: source?.buffer };
+    for (const segment of state.segments) {
+      if (state.timeline.currentTime >= cumulativeTime && 
+          state.timeline.currentTime < cumulativeTime + segment.segmentDuration) {
+        const source = state.sources[segment.sourceId];
+        return { ...segment, buffer: source?.buffer };
+      }
+      cumulativeTime += segment.segmentDuration;
     }
+    
     return null;
   };
 
@@ -248,26 +277,14 @@ function App() {
           payload: { sourceId: source.id } 
         });
       } else {
-        // If both current and next track exist, automatically add this track to timeline
-        // Find the end time of the last segment in the timeline
-        const lastSegment = state.timeline.segments[state.timeline.segments.length - 1];
-        const startTime = lastSegment ? lastSegment.timelineEnd : 0;
-        
-        // Create a new segment for this track
-        const newSegment = {
-          id: `segment-${source.id}-1`,
-          sourceId: source.id,
-          segmentStart: 0,
-          segmentEnd: source.duration,
-          timelineStart: startTime,
-          timelineEnd: startTime + source.duration,
-          duration: source.duration
-        };
-        
-        // Add the segment directly to the timeline
-        dispatch({
-          type: 'ADD_SEGMENT_TO_TIMELINE',
-          payload: { segment: newSegment }
+        // Auto-add track using ADD_TRACK_WITH_TRANSITION action
+        // The transition point will be at the end of current timeline
+        dispatch({ 
+          type: 'ADD_TRACK_WITH_TRANSITION',
+          payload: { 
+            sourceId: source.id,
+            transitionPoint: state.timeline.duration 
+          } 
         });
       }
 
@@ -320,7 +337,7 @@ function App() {
             </div>
             
             <div className="segments-container">
-              {state.timeline.segments.map((segment, index) => {
+              {state.segments.map((segment, index) => {
                 const source = state.sources[segment.sourceId];
                 return (
                   <div key={segment.id} className="segment">
@@ -330,13 +347,13 @@ function App() {
               })}
             </div>
             
-            {state.timeline.segments.length === 0 && (
+            {state.segments.length === 0 && (
               <div className="no-segments">
                 No segments yet. Upload audio files to see timeline segments.
               </div>
             )}
 
-            {state.timeline.segments.length > 0 && (
+            {state.segments.length > 0 && (
               <div className="playback-controls">
                 <div className="transport-controls">
                   <button 
@@ -367,7 +384,7 @@ function App() {
                     currentTime={state.timeline.currentTime}
                     duration={state.timeline.duration}
                     onSeek={handleSeek}
-                    segments={state.timeline.segments}
+                    segments={state.segments}
                     height={80}
                     className="timeline-waveform"
                   />
@@ -378,9 +395,9 @@ function App() {
                     <button 
                       onClick={handleMuteToggle}
                       className="control-button mute"
-                      title={state.timeline.isMuted ? "Unmute" : "Mute"}
+                      title={state.isMuted ? "Unmute" : "Mute"}
                     >
-                      {state.timeline.isMuted ? <VolumeX size={16} /> : state.timeline.volume > 0.5 ? <Volume2 size={16} /> : <Volume1 size={16} />}
+                      {state.isMuted ? <VolumeX size={16} /> : state.volume > 0.5 ? <Volume2 size={16} /> : <Volume1 size={16} />}
                     </button>
                     
                     <input
@@ -388,14 +405,14 @@ function App() {
                       min="0"
                       max="1"
                       step="0.01"
-                      value={state.timeline.isMuted ? 0 : state.timeline.volume}
+                      value={state.isMuted ? 0 : state.volume}
                       className="volume-slider"
                       onChange={(e) => handleVolumeChange(parseFloat(e.target.value))}
                       title="Volume"
                     />
                     
                     <span className="volume-display">
-                      {Math.round((state.timeline.isMuted ? 0 : state.timeline.volume) * 100)}%
+                      {Math.round((state.isMuted ? 0 : state.volume) * 100)}%
                     </span>
                   </div>
 
@@ -403,7 +420,7 @@ function App() {
                     <label htmlFor="playback-rate">Speed:</label>
                     <select 
                       id="playback-rate"
-                      value={state.timeline.playbackRate}
+                      value={state.playbackRate}
                       onChange={(e) => handlePlaybackRateChange(parseFloat(e.target.value))}
                       className="rate-select"
                       title="Playback speed"
@@ -423,10 +440,10 @@ function App() {
           </div>
 
           <div className="details-and-transition">
-            {state.timeline.segments.length > 0 && (
+            {state.segments.length > 0 && (
               <div className="timeline-details">
                 <h3><ListMusic size={18} className="inline-icon" /> Segment Details</h3>
-                {state.timeline.segments.map((segment, index) => {
+                {state.segments.map((segment, index) => {
                   const source = state.sources[segment.sourceId];
                   return (
                     <div key={`details-${segment.id}`} className="segment-detail-card">
@@ -438,7 +455,7 @@ function App() {
                         </span>
                         <span className="detail-separator">•</span>
                         <span className="detail-text">
-                          Duration: {formatTime(segment.duration)}
+                          Duration: {formatTime(segment.segmentDuration)}
                         </span>
                       </div>
                     </div>
@@ -512,7 +529,7 @@ function App() {
             </p>
             <p>
               <strong>Total Segments:</strong> 
-              <span>{state.timeline.segments.length}</span>
+              <span>{state.segments.length}</span>
             </p>
           </div>
         </div>
