@@ -15,13 +15,18 @@ export const SegmentDetails: React.FC<SegmentDetailsProps> = ({
   formatTime,
   removeFileExtension
 }) => {
-  if (segments.length === 0) {
-    return null;
-  }
-
   return (
     <div className="timeline-details">
       <h3><ListMusic size={18} className="inline-icon" /> Segment Details</h3>
+      {segments.length === 0 && (
+        <div className="segment-detail-card">
+          <div className="detail-content-inline">
+            <strong>No segments yet</strong>
+            <span className="detail-separator">•</span>
+            <span className="detail-text">Upload a track to see details here.</span>
+          </div>
+        </div>
+      )}
       {segments.map((segment, index) => {
         const source = sources[segment.sourceId];
         return (

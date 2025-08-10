@@ -298,6 +298,32 @@ function App() {
     }
   };
 
+  // Allow selecting a File programmatically (from folder view)
+  const handleSelectFile = async (file: File) => {
+    try {
+      const url = URL.createObjectURL(file);
+      await audioEngine.resume();
+      const buffer = await audioEngine.loadAudio(url);
+      const source = {
+        id: `source-${Date.now()}`,
+        url,
+        name: file.name,
+        duration: buffer.duration * 1000,
+        buffer
+      };
+      dispatch({ type: 'LOAD_SOURCE', payload: source });
+      if (!state.currentTrack) {
+        dispatch({ type: 'SELECT_FIRST_TRACK', payload: { sourceId: source.id } });
+      } else if (!state.nextTrack) {
+        dispatch({ type: 'SELECT_NEXT_TRACK', payload: { sourceId: source.id } });
+      } else {
+        dispatch({ type: 'ADD_TRACK_WITH_TRANSITION', payload: { sourceId: source.id, transitionPoint: state.timeline.duration } });
+      }
+    } catch (error) {
+      console.error('Error loading audio:', error);
+    }
+  };
+
   const handleSetTransition = (nextStartOffset?: number) => {
     if (state.currentTrack && state.nextTrack && pendingTransitionPoint !== undefined) {
       dispatch({ 
@@ -434,6 +460,7 @@ function App() {
               pendingTransitionPoint={pendingTransitionPoint}
               onTransitionPointChange={setPendingTransitionPoint}
               onSetTransition={handleSetTransition}
+              onSelectFile={handleSelectFile}
               formatTime={formatTime}
             />
           </div>
