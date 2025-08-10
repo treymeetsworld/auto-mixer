@@ -396,14 +396,6 @@ function App() {
           />
 
           <div className="details-and-transition">
-            <SegmentDetails
-              segments={state.segments}
-              sources={state.sources}
-              formatTime={formatTime}
-              removeFileExtension={removeFileExtension}
-              onRemoveSegment={handleRemoveSegment}
-            />
-
             <TransitionSettings
               currentTrack={state.currentTrack}
               nextTrack={state.nextTrack}
@@ -413,6 +405,14 @@ function App() {
               onSetTransition={handleSetTransition}
               onSelectFile={handleSelectFile}
               formatTime={formatTime}
+            />
+
+            <SegmentDetails
+              segments={state.segments}
+              sources={state.sources}
+              formatTime={formatTime}
+              removeFileExtension={removeFileExtension}
+              onRemoveSegment={handleRemoveSegment}
             />
           </div>
         </div>
