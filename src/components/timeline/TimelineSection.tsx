@@ -1,6 +1,5 @@
 import React from 'react';
 import { AudioUpload } from '../controls/AudioUpload';
-import { SegmentsList } from '../timeline/SegmentsList';
 import { PlaybackControls } from '../playback/PlaybackControls';
 import type { Segment, AudioSource } from '../../types';
 
@@ -21,7 +20,6 @@ interface TimelineSectionProps {
   onMuteToggle: () => void;
   onPlaybackRateChange: (rate: number) => void;
   formatTime: (ms: number) => string;
-  removeFileExtension: (filename: string) => string;
 }
 
 export const TimelineSection: React.FC<TimelineSectionProps> = ({
@@ -41,22 +39,46 @@ export const TimelineSection: React.FC<TimelineSectionProps> = ({
   onMuteToggle,
   onPlaybackRateChange,
   formatTime,
-  removeFileExtension
 }) => {
+  // Determine current active track name for simple display
+  let activeName: string | null = null;
+  if (segments.length > 0) {
+    let cumulative = 0;
+    let activeIndex = -1;
+    for (let i = 0; i < segments.length; i++) {
+      const seg = segments[i];
+      const segStart = cumulative;
+      const segEnd = cumulative + seg.segmentDuration;
+      if (currentTime >= segStart && currentTime < segEnd) {
+        activeIndex = i;
+        break;
+      }
+      cumulative = segEnd;
+    }
+    if (activeIndex === -1) activeIndex = segments.length - 1;
+    const activeSeg = segments[activeIndex];
+    const src = sources[activeSeg.sourceId];
+    activeName = src?.name || null;
+    // Remove file extension from the display name
+    if (activeName) {
+      activeName = activeName.replace(/\.[^/.]+$/, '');
+    }
+  }
+
   return (
     <div className="timeline-section">
       <div className="timeline-header">
-        <h3>Timeline Segments</h3>
+        <h3>Timeline</h3>
         <div className="timeline-controls">
           <AudioUpload onFileUpload={onFileUpload} />
         </div>
       </div>
-      
-      <SegmentsList
-        segments={segments}
-        sources={sources}
-        removeFileExtension={removeFileExtension}
-      />
+
+      <div className="segment">
+        <strong>
+          {activeName ? activeName : 'No track selected'}
+        </strong>
+      </div>
 
       {segments.length > 0 && (
         <PlaybackControls

@@ -338,7 +338,6 @@ function App() {
             onMuteToggle={handleMuteToggle}
             onPlaybackRateChange={handlePlaybackRateChange}
             formatTime={formatTime}
-            removeFileExtension={removeFileExtension}
           />
 
           <div className="details-and-transition">
