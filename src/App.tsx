@@ -15,7 +15,8 @@ function App() {
     if (state.timeline.isPlaying) {
       const updateTime = () => {
         try {
-          const currentTime = audioEngine.getCurrentTime();
+          // currentTime here is the elapsed time within the currently playing source buffer
+          const engineElapsedMs = audioEngine.getCurrentTime();
           
           // Find current segment based on timeline position
           const currentSegment = getCurrentSegment();
@@ -39,9 +40,12 @@ function App() {
               segmentTimelineStart += segment.segmentDuration;
             }
             
-            // Calculate timeline position based on current playing segment and audio position
-            const segmentOffset = Math.min(currentTime, playingSegment.segmentEnd - playingSegment.segmentStart);
-            timelinePosition = segmentTimelineStart + segmentOffset;
+            // Calculate the absolute position inside source buffer
+            // engineElapsedMs is the absolute buffer time used when starting playback
+            // playingSegment.segmentStart is the source buffer start for this segment
+            const segmentOffset = Math.max(0, engineElapsedMs - playingSegment.segmentStart);
+            const clampedOffset = Math.min(segmentOffset, playingSegment.segmentEnd - playingSegment.segmentStart);
+            timelinePosition = segmentTimelineStart + clampedOffset;
           }
           
           dispatch({ 
@@ -56,7 +60,7 @@ function App() {
           }
           
           // Check if current audio has reached the end of its segment
-          if (playingSegment && currentTime >= (playingSegment.segmentEnd - playingSegment.segmentStart)) {
+          if (playingSegment && engineElapsedMs >= playingSegment.segmentEnd) {
             // Find the next segment
             const currentIndex = state.segments.findIndex(seg => seg.id === playingSegment.id);
             const nextSegment = state.segments[currentIndex + 1];
@@ -146,8 +150,8 @@ function App() {
   };
 
   const handleSeek = async (time: number) => {
-    // Update the timeline current time immediately for responsive UI
-    dispatch({ type: 'SEEK_TO_TIME', payload: { time } });
+  // Update the timeline current time immediately for responsive UI
+  dispatch({ type: 'SEEK_TO_TIME', payload: { time } });
     
     // Calculate which segment contains the target time
     let cumulativeTime = 0;
@@ -177,7 +181,17 @@ function App() {
         currentPlayingSegmentRef.current = targetSegment;
         
         try {
-          await audioEngine.seekTo(seekPosition, source.buffer, effectiveVolume, state.playbackRate);
+          // If we're playing, restart immediately at the new position for continuity
+          if (state.timeline.isPlaying) {
+            await audioEngine.play(
+              source.buffer,
+              seekPosition,
+              effectiveVolume,
+              state.playbackRate
+            );
+          } else {
+            await audioEngine.seekTo(seekPosition, source.buffer, effectiveVolume, state.playbackRate);
+          }
         } catch (error) {
           console.error('Seek error:', error);
           // Restore previous playing segment on error

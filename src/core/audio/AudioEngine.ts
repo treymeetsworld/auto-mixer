@@ -64,9 +64,10 @@ export class AudioEngine {
     // Set volume
     this.setVolume(volume);
 
-    // Calculate start position
-    const offsetSeconds = (startOffset + this.pausedAt) / 1000;
-    this.startTime = this.context.currentTime - offsetSeconds;
+  // Calculate start position (absolute position in buffer)
+  const offsetSeconds = startOffset / 1000;
+  // Track the absolute buffer position baseline
+  this.startTime = this.context.currentTime - offsetSeconds;
     
     // Start playback
     this.currentSource.start(0, offsetSeconds);
@@ -78,6 +79,7 @@ export class AudioEngine {
    */
   pause(): void {
     if (this.currentSource && this.isPlaying) {
+      // Store absolute buffer position at pause time
       this.pausedAt = (this.context.currentTime - this.startTime) * 1000;
       this.currentSource.stop();
       this.currentSource = null;
@@ -102,6 +104,7 @@ export class AudioEngine {
    * Get current playback time in milliseconds
    */
   getCurrentTime(): number {
+    // Return absolute position within current buffer in ms
     if (this.isPlaying && this.currentSource) {
       return (this.context.currentTime - this.startTime) * 1000;
     }
@@ -146,11 +149,16 @@ export class AudioEngine {
    */
   async seekTo(timeMs: number, buffer?: AudioBuffer, volume: number = 0.8, rate: number = 1.0): Promise<void> {
     const wasPlaying = this.isPlaying;
-    this.stop();
+    // Stop current playback but keep paused position
+    if (this.currentSource) {
+      this.currentSource.stop();
+      this.currentSource = null;
+    }
+    this.isPlaying = false;
     this.pausedAt = timeMs;
-    
+
     if (wasPlaying && buffer) {
-      this.currentBuffer = buffer; // Store for potential reuse
+      // Resume immediately at new position
       await this.play(buffer, timeMs, volume, rate);
     }
   }

@@ -192,8 +192,8 @@ export function reducer(state: AppState, action: ActionType): AppState {
         ...state,
         timeline: {
           ...state.timeline,
-          currentTime: action.payload.time,
-          isPlaying: false
+          // Update position without altering play state so UI doesn't stop when seeking during playback
+          currentTime: action.payload.time
         }
       };
     }
