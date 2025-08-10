@@ -11,45 +11,39 @@ export const calculateSegmentDuration = (start: number, end: number): number => 
  * Calculates timeline duration by summing all segment durations
  */
 export const calculateTimelineDuration = (segments: Segment[]): number => {
-  return segments.reduce((total, segment) => total + segment.duration, 0);
+  return segments.reduce((total, segment) => total + segment.segmentDuration, 0);
 };
 
 /**
- * Creates a new segment with all timeline calculations
+ * Creates a new segment with basic properties
  */
 export const createSegment = (
   id: string,
   source: AudioSource,
   segmentStart: number,
-  segmentEnd: number,
-  timelineStart: number
+  segmentEnd: number
 ): Segment => {
-  const duration = calculateSegmentDuration(segmentStart, segmentEnd);
-  const timelineEnd = timelineStart + duration;
+  const segmentDuration = calculateSegmentDuration(segmentStart, segmentEnd);
 
   return {
     id,
     sourceId: source.id,
     segmentStart,
     segmentEnd,
-    timelineStart,
-    timelineEnd,
-    duration
+    segmentDuration
   };
 };
 
 /**
- * Updates a segment's end point and recalculates timeline values
+ * Updates a segment's end point and recalculates duration
  */
 export const updateSegmentEnd = (segment: Segment, newEnd: number): Segment => {
-  const duration = calculateSegmentDuration(segment.segmentStart, newEnd);
-  const timelineEnd = segment.timelineStart + duration;
+  const segmentDuration = calculateSegmentDuration(segment.segmentStart, newEnd);
 
   return {
     ...segment,
     segmentEnd: newEnd,
-    timelineEnd,
-    duration
+    segmentDuration
   };
 };
 

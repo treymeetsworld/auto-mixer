@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import type { Segment } from '../types';
+import type { Segment } from '../../types';
 
 interface WaveformProps {
   audioBuffer?: AudioBuffer;

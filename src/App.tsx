@@ -1,18 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAudio } from './core/AudioContext';
-import { Waveform } from './components/Waveform';
-import { 
-  Upload,
-  Play,
-  Pause,
-  Square,
-  Volume2,
-  VolumeX,
-  Volume1,
-  ListMusic,
-  RotateCcw,
-  TrendingUp
-} from 'lucide-react';
+import { TimelineSection, SegmentDetails } from './components/timeline';
+import { TransitionSettings } from './components/transition';
+import { TrendingUp } from 'lucide-react';
 
 function App() {
   const { state, dispatch, audioEngine } = useAudio();
@@ -317,194 +307,43 @@ function App() {
     <div className="app">
       <div className="content">
         <div className="main-content">
-          <div className="timeline-section">
-            <div className="timeline-header">
-              <h3>Timeline Segments</h3>
-              <div className="timeline-controls">
-                <div className="add-track-button">
-                  <input
-                    type="file"
-                    accept="audio/*"
-                    onChange={handleFileUpload}
-                    id="audio-upload"
-                  />
-                  <label htmlFor="audio-upload" className="add-track-label">
-                    <span className="upload-icon"><Upload size={18} /></span>
-                    <span className="upload-text">Add Track</span>
-                  </label>
-                </div>
-              </div>
-            </div>
-            
-            <div className="segments-container">
-              {state.segments.map((segment, index) => {
-                const source = state.sources[segment.sourceId];
-                return (
-                  <div key={segment.id} className="segment">
-                    <strong>#{index + 1} {source ? removeFileExtension(source.name) : 'Unknown Track'}</strong>
-                  </div>
-                );
-              })}
-            </div>
-            
-            {state.segments.length === 0 && (
-              <div className="no-segments">
-                No segments yet. Upload audio files to see timeline segments.
-              </div>
-            )}
-
-            {state.segments.length > 0 && (
-              <div className="playback-controls">
-                <div className="transport-controls">
-                  <button 
-                    onClick={handlePlayPause}
-                    className="control-button play-pause"
-                    title={state.timeline.isPlaying ? "Pause" : "Play"}
-                  >
-                    {state.timeline.isPlaying ? <Pause size={16} /> : <Play size={16} />}
-                  </button>
-                  
-                  <button 
-                    onClick={handleStop}
-                    className="control-button stop"
-                    title="Stop"
-                  >
-                    <Square size={16} />
-                  </button>
-                  
-                  <div className="time-display">
-                    <span className="current-time">{formatTime(state.timeline.currentTime)}</span>
-                    <span className="time-separator">/</span>
-                    <span className="total-time">{formatTime(state.timeline.duration)}</span>
-                  </div>
-                </div>
-
-                <div className="seek-control waveform">
-                  <Waveform
-                    currentTime={state.timeline.currentTime}
-                    duration={state.timeline.duration}
-                    onSeek={handleSeek}
-                    segments={state.segments}
-                    height={80}
-                    className="timeline-waveform"
-                  />
-                </div>
-
-                <div className="bottom-controls">
-                  <div className="volume-control">
-                    <button 
-                      onClick={handleMuteToggle}
-                      className="control-button mute"
-                      title={state.isMuted ? "Unmute" : "Mute"}
-                    >
-                      {state.isMuted ? <VolumeX size={16} /> : state.volume > 0.5 ? <Volume2 size={16} /> : <Volume1 size={16} />}
-                    </button>
-                    
-                    <input
-                      type="range"
-                      min="0"
-                      max="1"
-                      step="0.01"
-                      value={state.isMuted ? 0 : state.volume}
-                      className="volume-slider"
-                      onChange={(e) => handleVolumeChange(parseFloat(e.target.value))}
-                      title="Volume"
-                    />
-                    
-                    <span className="volume-display">
-                      {Math.round((state.isMuted ? 0 : state.volume) * 100)}%
-                    </span>
-                  </div>
-
-                  <div className="playback-rate-control">
-                    <label htmlFor="playback-rate">Speed:</label>
-                    <select 
-                      id="playback-rate"
-                      value={state.playbackRate}
-                      onChange={(e) => handlePlaybackRateChange(parseFloat(e.target.value))}
-                      className="rate-select"
-                      title="Playback speed"
-                    >
-                      <option value="0.25">0.25x</option>
-                      <option value="0.5">0.5x</option>
-                      <option value="0.75">0.75x</option>
-                      <option value="1.0">1.0x</option>
-                      <option value="1.25">1.25x</option>
-                      <option value="1.5">1.5x</option>
-                      <option value="2.0">2.0x</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
+          <TimelineSection
+            segments={state.segments}
+            sources={state.sources}
+            isPlaying={state.timeline.isPlaying}
+            currentTime={state.timeline.currentTime}
+            duration={state.timeline.duration}
+            volume={state.volume}
+            isMuted={state.isMuted}
+            playbackRate={state.playbackRate}
+            onFileUpload={handleFileUpload}
+            onPlayPause={handlePlayPause}
+            onStop={handleStop}
+            onSeek={handleSeek}
+            onVolumeChange={handleVolumeChange}
+            onMuteToggle={handleMuteToggle}
+            onPlaybackRateChange={handlePlaybackRateChange}
+            formatTime={formatTime}
+            removeFileExtension={removeFileExtension}
+          />
 
           <div className="details-and-transition">
-            {state.segments.length > 0 && (
-              <div className="timeline-details">
-                <h3><ListMusic size={18} className="inline-icon" /> Segment Details</h3>
-                {state.segments.map((segment, index) => {
-                  const source = state.sources[segment.sourceId];
-                  return (
-                    <div key={`details-${segment.id}`} className="segment-detail-card">
-                      <div className="detail-content-inline">
-                        <strong>#{index + 1} {source ? removeFileExtension(source.name) : 'Unknown Track'}</strong>
-                        <span className="detail-separator">•</span>
-                        <span className="detail-text">
-                          Source: {formatTime(segment.segmentStart)} - {formatTime(segment.segmentEnd)}
-                        </span>
-                        <span className="detail-separator">•</span>
-                        <span className="detail-text">
-                          Duration: {formatTime(segment.segmentDuration)}
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+            <SegmentDetails
+              segments={state.segments}
+              sources={state.sources}
+              formatTime={formatTime}
+              removeFileExtension={removeFileExtension}
+            />
 
-            {state.currentTrack && state.nextTrack && (
-              <div className="transition-section">
-                <h3><RotateCcw size={18} className="inline-icon" /> Transition Settings</h3>
-                <div className="transition-options">
-                  <div className="transition-group">
-                    <h4>Custom Transition</h4>
-                    <div className="custom-transition">
-                      <input
-                        type="range"
-                        min="0"
-                        max={state.currentTrack ? state.sources[state.currentTrack]?.duration : 100000}
-                        step="1000"
-                        value={pendingTransitionPoint}
-                        className="transition-slider"
-                        onChange={(e) => {
-                          const value = parseInt(e.target.value);
-                          setPendingTransitionPoint(value);
-                        }}
-                      />
-                      <div className="slider-labels">
-                        <span>0:00</span>
-                        <span>
-                          {state.currentTrack ? formatTime(state.sources[state.currentTrack]?.duration || 0) : '0:00'}
-                        </span>
-                      </div>
-                      <div className="transition-controls">
-                        <div className="current-time">
-                          Transition at: <strong>{formatTime(pendingTransitionPoint)}</strong>
-                        </div>
-                        <button 
-                          onClick={handleSetTransition}
-                          className="set-transition-button"
-                        >
-                          <RotateCcw size={16} className="inline-icon" /> Set Transition
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
+            <TransitionSettings
+              currentTrack={state.currentTrack}
+              nextTrack={state.nextTrack}
+              sources={state.sources}
+              pendingTransitionPoint={pendingTransitionPoint}
+              onTransitionPointChange={setPendingTransitionPoint}
+              onSetTransition={handleSetTransition}
+              formatTime={formatTime}
+            />
           </div>
         </div>
 
