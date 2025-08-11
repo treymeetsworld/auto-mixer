@@ -3,6 +3,7 @@ import { TransportControls } from '../controls/TransportControls';
 import { VolumeControls } from '../controls/VolumeControls';
 import { PlaybackRateControl } from '../controls/PlaybackRateControl';
 import { Waveform } from './Waveform';
+import { SeekBar } from './SeekBar';
 import type { Segment, AudioSource } from '../../types';
 
 interface PlaybackControlsProps {
@@ -46,12 +47,12 @@ export const PlaybackControls: React.FC<PlaybackControlsProps> = ({
         <Waveform
           currentTime={currentTime}
           duration={duration}
-          onSeek={onSeek}
           segments={segments}
           sources={sources}
           height={140}
           className="timeline-waveform"
         />
+  <SeekBar currentTime={currentTime} duration={duration} onSeek={onSeek} />
       </div>
 
       <div className="controls-row">

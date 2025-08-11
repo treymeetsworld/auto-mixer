@@ -1,11 +1,10 @@
-import { useState, useRef, useEffect } from 'react';
+import { useRef, useEffect } from 'react';
 import type { Segment, AudioSource } from '../../types';
 
 interface WaveformProps {
   audioBuffer?: AudioBuffer; // unused now; using sources per segment
   currentTime: number;
   duration: number;
-  onSeek: (time: number) => void;
   className?: string;
   height?: number;
   segments?: Segment[];
@@ -15,14 +14,13 @@ interface WaveformProps {
 export const Waveform: React.FC<WaveformProps> = ({
   currentTime,
   duration,
-  onSeek,
   className = '',
   height = 80,
   segments = [],
   sources
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [isInteracting, setIsInteracting] = useState(false);
+  // Drag interactions disabled in waveform; use SeekBar for scrubbing
 
   // Simple drawing based on segment durations
   useEffect(() => {
@@ -132,23 +130,13 @@ export const Waveform: React.FC<WaveformProps> = ({
     // Draw progress indicator - simple proportional to timeline
   const progressX = (currentTime / duration) * width;
     
-    // Draw progress line
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 3;
-    ctx.shadowColor = '#ffffff';
-    ctx.shadowBlur = 8;
-    ctx.beginPath();
-    ctx.moveTo(progressX, 0);
-    ctx.lineTo(progressX, canvasHeight);
-    ctx.stroke();
-    ctx.shadowBlur = 0;
-
-    // Progress fill
-    const progressGradient = ctx.createLinearGradient(0, 0, progressX, 0);
-    progressGradient.addColorStop(0, 'rgba(255, 255, 255, 0.15)');
-    progressGradient.addColorStop(1, 'rgba(255, 255, 255, 0.05)');
-    ctx.fillStyle = progressGradient;
-    ctx.fillRect(0, 0, progressX, canvasHeight);
+  // Draw progress line (without shadow/overlay)
+  ctx.strokeStyle = '#ffffff';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(progressX, 0);
+  ctx.lineTo(progressX, canvasHeight);
+  ctx.stroke();
 
   }, [currentTime, duration, segments, height, sources]);
 
@@ -167,66 +155,14 @@ export const Waveform: React.FC<WaveformProps> = ({
     return () => window.removeEventListener('resize', handleResize);
   }, [height]);
 
-  const handleClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const rect = canvas.getBoundingClientRect();
-    const clickX = e.clientX - rect.left;
-    
-    // Find which segment was clicked and calculate timeline position
-    let cumulativeTimelineTime = 0; // Cumulative timeline time (not visual position)
-    let cumulativeVisualWidth = 0; // Cumulative visual width
-    let targetTime = 0;
-    
-    for (let i = 0; i < segments.length; i++) {
-      const segment = segments[i];
-      const segmentWidth = (segment.segmentDuration / duration) * rect.width;
-      
-      if (clickX >= cumulativeVisualWidth && clickX < cumulativeVisualWidth + segmentWidth) {
-        // Click is in this segment
-        const segmentClickRatio = (clickX - cumulativeVisualWidth) / segmentWidth;
-        targetTime = cumulativeTimelineTime + (segmentClickRatio * segment.segmentDuration);
-        break;
-      }
-      
-      cumulativeTimelineTime += segment.segmentDuration;
-      cumulativeVisualWidth += segmentWidth;
-    }
-    
-    // If click is beyond all segments, seek to total timeline duration
-    if (targetTime === 0 && segments.length > 0) {
-      targetTime = duration;
-    }
-    
-    onSeek(targetTime);
-  };
-
-  const handleMouseDown = () => {
-    setIsInteracting(true);
-  };
-
-  const handleMouseUp = () => {
-    setIsInteracting(false);
-  };
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!isInteracting) return;
-    handleClick(e);
-  };
+  // Seeking via waveform is disabled; use SeekBar below.
 
   return (
     <div className={`waveform-container ${className}`}>
       <canvas
         ref={canvasRef}
         className="waveform-canvas"
-        onClick={handleClick}
-        onMouseDown={handleMouseDown}
-        onMouseUp={handleMouseUp}
-        onMouseMove={handleMouseMove}
-        onMouseLeave={handleMouseUp}
-  style={{ cursor: isInteracting ? 'grabbing' : 'pointer' }}
-      />
+  />
     </div>
   );
 };
